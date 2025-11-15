@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * 用户服务实现类
  */
@@ -65,5 +67,15 @@ public class UserServiceImpl implements UserService {
             return;
         }
         userMapper.addUser(user);
+    }
+
+    @Override
+    public List<User> searchUsers(String userName, String phone, int page, int size) {
+        return List.of();
+    }
+
+    @Override
+    public long countUsers(String userName, String phone) {
+        return 0;
     }
 }

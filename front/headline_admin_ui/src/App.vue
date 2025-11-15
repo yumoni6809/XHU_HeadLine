@@ -1,16 +1,12 @@
 <template>
-  <AuroraBackground>
-    
-  </AuroraBackground>
+  <router-view />
+
 </template>
 
 <script setup lang="ts">
-import AuroraBackground from './components/AuroraBackground.vue';
 
 
 </script>
-
-
 
 <style scoped>
 
