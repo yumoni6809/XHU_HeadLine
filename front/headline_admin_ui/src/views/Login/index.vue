@@ -6,7 +6,7 @@
           <h3 class="title">系统登录</h3>
 
           <el-form :model="form" :rules="rules" ref="formRef" label-position="left" label-width="0">
-            <!-- 用户名：使用 VanishingInput 特效 -->
+            <!-- 使用 VanishingInput 特效 -->
             <el-form-item prop="userName" class="form-item-vanish">
               <VanishingInput
                 v-model="form.userName"
@@ -15,7 +15,7 @@
               />
             </el-form-item>
 
-            <!-- 密码：使用 VanishingInput 风格（同样组件）-->
+            <!-- 使用 VanishingInput（同样组件）-->
             <el-form-item prop="password" class="form-item-vanish">
               <VanishingInput
                 v-model="form.password"
@@ -53,20 +53,24 @@ const router = useRouter()
 const route = useRoute()
 const formRef = ref()
 
+// 登录表单数据
 const form = reactive({
   userName: '',
   password: '',
   remember: false,
 })
 
+// 基本校验规则
 const rules = {
   userName: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
 }
 
+// VanishingInput 占位内容
 const namePlaceholders = ['请输入用户名', '示例：alice']
 const passwordPlaceholders = ['请输入密码', '长度建议 8+ 位', '区分大小写']
 
+// VanishingInput 提交时同步到 form
 function onVanishingSubmitName(val: string) {
   form.userName = val
 }
@@ -74,22 +78,47 @@ function onVanishingSubmitPassword(val: string) {
   form.password = val
 }
 
-const onSubmit = () => {
-  ;(formRef.value as any).validate?.(async (valid: boolean) => {
-    if (!valid) return
-    try {
-      const token = 'demo-token-' + Date.now()
-      localStorage.setItem('auth_token', token)
+// 点击登录按钮
+const onSubmit = async () => {
+  console.log('onSubmit clicked (no validate)')
+  try {
+    const resp = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userName: form.userName,
+        password: form.password,
+      }),
+    })
+    const json = await resp.json()
+    console.log('login response:', json)
 
-      ElMessage.success('登录成功')
-
-      const redirect = (route.query.redirect as string) || '/'
-      router.replace(redirect)
-    } catch (err: any) {
-      console.error(err)
-      ElMessage.error(err?.message || '登录失败')
+    if (json.code != 1 || !json.data?.token) {
+      ElMessage.error(json.message || '用户名或密码错误')
+      return
     }
-  })
+
+    const loginInfo = json.data
+    localStorage.setItem('auth_token', loginInfo.token)
+    localStorage.setItem(
+      'login_user',
+      JSON.stringify({
+        userId: loginInfo.userId,
+        userName: loginInfo.userName,
+        avatarUrl: loginInfo.avatarUrl || '',
+      }),
+    )
+    console.log('after setItem auth_token:', localStorage.getItem('auth_token'))
+
+    ElMessage.success('登录成功')
+    const redirect = (route.query.redirect as string) || '/user'
+    router.replace(redirect)
+  } catch (err) {
+    console.error(err)
+    ElMessage.error('登录失败，请检查网络或服务器')
+  }
 }
 </script>
 

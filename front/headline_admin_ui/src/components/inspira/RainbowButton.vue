@@ -11,6 +11,7 @@
         props.class,
       )
     "
+    :type="props.is === 'button' ? 'button' : undefined"
   >
     <slot />
   </component>

@@ -26,17 +26,14 @@ public class User {
     public Long getId() {
         return id;
     }
-    // dzh
 
     public void setId(Long id) {
         this.id = id;
     }
-    //dzhh
 
     public String getUserName() {
         return userName;
     }
-    //dzhhsdfsfd
 
     public void setUserName(String userName) {
         this.userName = userName;

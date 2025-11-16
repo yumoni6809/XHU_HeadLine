@@ -4,11 +4,14 @@ import com.xhu.headline_server.entity.LoginInfo;
 import com.xhu.headline_server.entity.User;
 import com.xhu.headline_server.mapper.UserMapper;
 import com.xhu.headline_server.service.UserService;
+import com.xhu.headline_server.utils.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 用户服务实现类
@@ -91,24 +94,29 @@ public class UserServiceImpl implements UserService {
     // Java
     @Override
     public LoginInfo login(String username, String password) {
-        // 1\. 调用 mapper 查询用户
+        // 1. 调用 mapper 查询用户
         User user = userMapper.selectNameAndPassword(username, password);
         if (user == null) {
             // 登录失败：账号或密码错误
             return null;
         }
 
-        // 2\. 生成 token（示例：UUID，可换为 JWT）
-        String token = java.util.UUID.randomUUID().toString().replace("-", "");
+        // 2. 组装 JWT 负载数据
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", user.getId());
+        claims.put("userName", user.getUserName());
+        claims.put("role", user.getRole());
 
-        // 3\. 封装 LoginInfo
+        // 3. 使用 JwtUtils 生成 JWT 令牌
+        String token = JwtUtils.generateJwt(claims);
+
+        // 4. 封装 LoginInfo 返回
         LoginInfo loginInfo = new LoginInfo();
         loginInfo.setUserId(user.getId());
         loginInfo.setUserName(user.getUserName());
         loginInfo.setPassword(user.getPassword());
         loginInfo.setToken(token);
-
-        // 如果需要，可以在这里把 token 存到缓存（Redis）或数据库中，用于后续校验
+        System.out.println("生成的 token: " + token);
 
         return loginInfo;
     }
