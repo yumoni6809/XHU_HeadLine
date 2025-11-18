@@ -3,7 +3,7 @@ export default { name: 'AppLayout' }
 </script>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, computed } from 'vue'
 import {
   useRoute,
   useRouter,
@@ -13,9 +13,11 @@ import {
 import { ElMessage } from 'element-plus'
 import { Menu as IconMenu } from '@element-plus/icons-vue'
 
+// 登录用户信息结构
 interface LoginUser {
   userId: number
   userName: string
+  role: number // 0: 管理员, 1: 员工
   avatarUrl?: string
 }
 
@@ -28,7 +30,7 @@ const currentUser = ref<LoginUser | null>(null)
 // 默认头像
 const DEFAULT_AVATAR = 'http://yumoni.top/upload/Transparent_Akkarin_Transparentized.png'
 
-// 从 localStorage 读取登录用户信息
+// 从 localStorage 读取 user 信息
 const loadUser = () => {
   const raw = localStorage.getItem('login_user')
   if (!raw) {
@@ -36,16 +38,25 @@ const loadUser = () => {
     return
   }
   try {
-    currentUser.value = JSON.parse(raw) as LoginUser
-  } catch {
+    const parsed = JSON.parse(raw) as LoginUser
+    // 如果 role 是字符串，转为数字以防万一
+    parsed.role =
+      typeof (parsed as any).role === 'string' ? Number((parsed as any).role) : parsed.role
+    currentUser.value = parsed
+    console.log('layout loadUser:', currentUser.value)
+  } catch (e) {
+    console.error('parse login_user error:', e)
     currentUser.value = null
   }
 }
 
-// 初始加载一次
+// 是否管理员（0 为管理员）
+const isAdmin = computed(() => currentUser.value?.role === 0)
+
+// 初始加载
 onMounted(loadUser)
 
-// 监听路由 path 变化，高亮菜单，并尝试刷新用户信息
+// 监听路由变化，高亮菜单 + 刷新用户
 watch(
   () => route.path,
   (p) => {
@@ -54,12 +65,12 @@ watch(
   },
 )
 
-// 菜单点击时导航
+// 菜单点击
 const go = (index: string | RouteLocationAsRelativeGeneric | RouteLocationAsPathGeneric) => {
   if (index && route.path !== index) router.push(index)
 }
 
-// 退出登录：清除 token 和用户信息，并跳转登录页
+// 退出登录
 const logout = () => {
   localStorage.removeItem('auth_token')
   localStorage.removeItem('login_user')
@@ -82,13 +93,14 @@ const logout = () => {
       </el-scrollbar>
     </el-aside>
 
-    <!-- 右侧主区域：包含头部与内容 -->
+    <!-- 右侧主区域 -->
     <el-container>
       <el-header class="app-header">
         <div class="title">头条后台管理系统</div>
         <div class="user-info" v-if="currentUser">
           <img :src="currentUser.avatarUrl || DEFAULT_AVATAR" class="avatar" alt="avatar" />
           <span class="user-name">{{ currentUser.userName }}</span>
+          <span class="role-tag">{{ isAdmin ? '管理员' : '员工' }}</span>
           <el-button type="text" class="logout-btn" @click="logout">退出</el-button>
         </div>
         <div class="user-info" v-else>
@@ -97,7 +109,8 @@ const logout = () => {
       </el-header>
 
       <el-main class="app-main">
-        <router-view />
+        <!-- 传递 isAdmin 给子页面 -->
+        <router-view :is-admin="isAdmin" />
       </el-main>
     </el-container>
   </el-container>
@@ -134,6 +147,13 @@ const logout = () => {
 
 .user-name {
   font-size: 14px;
+}
+
+.role-tag {
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .logout-btn {

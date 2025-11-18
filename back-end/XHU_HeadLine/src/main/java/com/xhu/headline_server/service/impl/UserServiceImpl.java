@@ -101,6 +101,12 @@ public class UserServiceImpl implements UserService {
             return null;
         }
 
+        int grade = user.getRole();
+        if (grade != 0 && grade != 1) {
+            // 仅允许管理员和员工登录后台管理系统
+            return null;
+        }
+
         // 2. 组装 JWT 负载数据
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", user.getId());
@@ -115,6 +121,7 @@ public class UserServiceImpl implements UserService {
         loginInfo.setUserId(user.getId());
         loginInfo.setUserName(user.getUserName());
         loginInfo.setPassword(user.getPassword());
+        loginInfo.setRole(user.getRole());
         loginInfo.setToken(token);
         System.out.println("生成的 token: " + token);
 

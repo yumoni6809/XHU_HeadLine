@@ -1,4 +1,3 @@
-// ...existing code...
 <script lang="ts">
 export default { name: 'UserView' }
 </script>
@@ -8,6 +7,7 @@ import { ElMessage } from 'element-plus'
 import { EditPen, Delete } from '@element-plus/icons-vue'
 import { queryPageApi, deleteUserApi, addUserApi, updateUserApi } from '@/api/user'
 import { curd } from '@/api/curd'
+import { defineProps } from 'vue'
 
 // 初始用户对象
 const initialUser = {
@@ -104,6 +104,11 @@ const delUser = async (row: unknown) => {
   }
 }
 
+// 从父布局接收是否管理员
+const props = defineProps<{
+  isAdmin: boolean
+}>()
+
 // 新增 / 编辑 / 保存 / 取消
 const addUser = addItem
 const updateUser = updateItem
@@ -182,7 +187,7 @@ const uploadError = () => {
       </el-form-item>
 
       <el-form-item>
-        <el-button type="success" @click="addUser"
+        <el-button v-if="props.isAdmin" type="success" @click="addUser"
           ><el-icon><EditPen /></el-icon> 添加</el-button
         >
         <el-button type="primary" @click="search">查询</el-button>
@@ -224,10 +229,10 @@ const uploadError = () => {
       <el-table-column label="操作" width="120">
         <template #default="{ row }">
           <div class="action-buttons">
-            <el-button size="small" type="primary" @click="updateUser(row)">
+            <el-button v-if="props.isAdmin" size="small" type="primary" @click="updateUser(row)">
               <el-icon><EditPen /></el-icon>
             </el-button>
-            <el-button size="small" type="danger" @click="delUser(row)">
+            <el-button v-if="props.isAdmin" size="small" type="danger" @click="delUser(row)">
               <el-icon><Delete /></el-icon>
             </el-button>
           </div>
@@ -237,7 +242,7 @@ const uploadError = () => {
   </div>
 
   <!--新增/编辑对话框-->
-  <el-dialog v-model="dialogShow" :title="dialogTitle" width="720px">
+  <el-dialog v-if="props.isAdmin" v-model="dialogShow" :title="dialogTitle" width="720px">
     <el-form :model="user" label-width="100px">
       <!--第一行-->
       <el-row :gutter="20">

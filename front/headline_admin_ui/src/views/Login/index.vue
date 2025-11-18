@@ -80,7 +80,6 @@ function onVanishingSubmitPassword(val: string) {
 
 // 点击登录按钮
 const onSubmit = async () => {
-  console.log('onSubmit clicked (no validate)')
   try {
     const resp = await fetch('/api/admin/login', {
       method: 'POST',
@@ -101,12 +100,17 @@ const onSubmit = async () => {
     }
 
     const loginInfo = json.data
+
+    const roleNumber = typeof loginInfo.role === 'string' ? Number(loginInfo.role) : loginInfo.role
+
+    // loginInfo 中应包含 role（0 管理员 / 1 员工）
     localStorage.setItem('auth_token', loginInfo.token)
     localStorage.setItem(
       'login_user',
       JSON.stringify({
         userId: loginInfo.userId,
         userName: loginInfo.userName,
+        role: roleNumber,
         avatarUrl: loginInfo.avatarUrl || '',
       }),
     )
