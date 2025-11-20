@@ -18,5 +18,4 @@ public class LoginInfo {
     @Setter
     private int role;
 
-
 }

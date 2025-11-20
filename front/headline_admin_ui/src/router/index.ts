@@ -1,48 +1,53 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import LayoutView from '@/views/layout/index.vue'
-import UserView from '@/views/user/index.vue'
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
+import Layout from '@/views/layout/index.vue'
 import LoginView from '@/views/Login/index.vue'
+import UserView from '@/views/user/index.vue'
+import PortView from '@/port/index.vue'
 
-const routes = [
-  // 登录页：单独显示，不在 Layout 下
+const routes: Array<RouteRecordRaw> = [
   {
     path: '/login',
-    name: 'login',
+    name: 'Login',
     component: LoginView,
   },
-  // 需要登录的业务页面放在 Layout 下
   {
     path: '/',
-    component: LayoutView,
-    redirect: '/user',
-    children: [{ path: 'user', name: 'user', component: UserView }],
+    component: Layout,
+    children: [
+      {
+        path: '',
+        redirect: '/user',
+      },
+      {
+        path: '/user',
+        name: 'User',
+        component: UserView,
+      },
+      {
+        path: '/port',
+        name: 'Port',
+        component: PortView,
+      },
+    ],
   },
 ]
 
+// 创建路由实例
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes,
 })
 
-// 未登录时只允许访问 /login
-router.beforeEach((to, from, next) => {
+// 简单路由守卫：未登录跳转登录页
+router.beforeEach((to, _from, next) => {
   const token = localStorage.getItem('auth_token')
-  console.log('[router.beforeEach] to:', to.path, 'token:', token)
-
-  // 未登录：只放行 /login，其余全部重定向到 /login
-  if (!token) {
-    if (to.path !== '/login') {
-      return next({ path: '/login', replace: true })
-    }
-    return next()
+  if (!token && to.path !== '/login') {
+    next('/login')
+  } else if (token && to.path === '/login') {
+    next('/user')
+  } else {
+    next()
   }
-
-  // 已登录：访问 /login 时重定向到用户管理页，其余正常放行
-  if (to.path === '/login') {
-    return next({ path: '/user', replace: true })
-  }
-
-  return next()
 })
 
 export default router

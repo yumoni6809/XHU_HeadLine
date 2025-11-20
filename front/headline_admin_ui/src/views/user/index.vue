@@ -7,8 +7,6 @@ import { ElMessage } from 'element-plus'
 import { EditPen, Delete } from '@element-plus/icons-vue'
 import { queryPageApi, deleteUserApi, addUserApi, updateUserApi } from '@/api/user'
 import { curd } from '@/api/curd'
-import { defineProps } from 'vue'
-
 // 初始用户对象
 const initialUser = {
   id: null,

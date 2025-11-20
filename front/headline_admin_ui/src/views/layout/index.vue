@@ -90,6 +90,12 @@ const logout = () => {
             <span>用户管理</span>
           </el-menu-item>
         </el-menu>
+        <el-menu :default-active="active" @select="go" class="el-menu-vertical-demo">
+          <el-menu-item index="/port">
+            <el-icon><IconMenu /></el-icon>
+            <span>文章管理</span>
+          </el-menu-item>
+        </el-menu>
       </el-scrollbar>
     </el-aside>
 

@@ -19,6 +19,7 @@
   "dependencies": {
     "@vueuse/core": "^14.0.0",
     "axios": "^1.13.2",
+    "cherry-markdown": "^0.10.2",
     "element-plus": "^2.11.7",
     "motion-v": "^1.7.4",
     "pinia": "^3.0.3",

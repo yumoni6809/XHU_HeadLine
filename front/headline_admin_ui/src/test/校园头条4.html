@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校园头条</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background-color: #f5f5f5;
+            padding-bottom: 80px; /* 给底部导航留出空间 */
+            padding-left: 10px; /* 给返回按钮留出左侧空间 */
+        }
+        .header {
+            background-color: #fff;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            position: relative;
+            z-index: 1;
+        }
+        .nav {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .nav-item {
+            padding: 8px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px;
+            margin-right: 5px;
+        }
+        .nav-item.active {
+            background-color: #ff6b6b;
+            color: #fff;
+        }
+        .filter {
+            display: flex;
+            margin-top: 10px;
+        }
+        .filter-btn {
+            padding: 6px 12px;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 5px;
+            background-color: #fff;
+        }
+        .filter-btn:hover {
+            background-color: #f0f0f0;
+        }
+        .search-area {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .search-input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px 0 0 4px;
+        }
+        .search-btn {
+            padding: 8px 15px;
+            background-color: #ff6b6b;
+            color: #fff;
+            border: none;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+        }
+        .mine {
+            position: absolute;
+            right: 20px;
+            top: 10px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        /* 内容区样式 - 用于切换显示 */
+        .content-container {
+            padding: 10px;
+            margin-bottom: 20px;
+            min-height: calc(100vh - 180px);
+        }
+        /* 新闻列表样式 */
+        .news-list {
+            display: block;
+        }
+        .post {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: relative; /* 用于标签定位 */
+        }
+        /* 新闻标签容器 */
+        .post-tags {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 8px;
+        }
+        /* 新闻标签样式 */
+        .post-tag {
+            padding: 3px 8px;
+            background-color: #f0f5ff;
+            color: #4299e1;
+            border-radius: 12px;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .post-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #ffcccc;
+            margin-right: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .follow-btn {
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #4ecdc4;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .user-info {
+            flex: 1;
+        }
+        .nickname {
+            font-weight: bold;
+        }
+        .time {
+            font-size: 12px;
+            color: #999;
+        }
+        .post-content {
+            line-height: 1.6;
+            margin-bottom: 10px;
+            padding-right: 80px; /* 给右侧标签留出空间 */
+        }
+        .post-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+        .action-btn {
+            display: flex;
+            align-items: center;
+            margin-left: 15px;
+            cursor: pointer;
+            color: #999;
+        }
+        .action-btn:hover {
+            color: #ff6b6b;
+        }
+        .action-btn i {
+            margin-right: 5px;
+        }
+        /* 点赞/收藏/下载激活状态 */
+        .action-btn.active {
+            color: #ff6b6b;
+        }
+        .action-btn.active i.far {
+            font-weight: 900;
+        }
+        /* 通用页面样式 */
+        .common-page {
+            display: none;
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .page-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 25px;
+            color: #333;
+            display: flex;
+            align-items: center;
+        }
+        .page-title i {
+            margin-right: 10px;
+            color: #ff6b6b;
+        }
+        /* 个人资料页面样式 */
+        .profile-page {
+            display: none;
+        }
+        .profile-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            margin: 0 auto 15px;
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
+        }
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .avatar-upload {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            padding: 5px;
+            font-size: 12px;
+            display: none;
+        }
+        .profile-avatar:hover .avatar-upload {
+            display: block;
+        }
+        #avatar-input {
+            display: none;
+        }
+        .profile-form {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            gap: 20px;
+            align-items: center;
+        }
+        .form-label {
+            font-weight: bold;
+            color: #333;
+            text-align: right;
+        }
+        .form-input, .form-select, .form-textarea {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+            font-size: 14px;
+        }
+        .form-textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        .form-input:disabled {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+        }
+        .submit-btn {
+            grid-column: 2;
+            padding: 12px;
+            background-color: #ff6b6b;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .submit-btn:hover {
+            background-color: #ff5252;
+        }
+        /* 安全隐私页面样式 */
+        .security-page {
+            display: none;
+        }
+        .security-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .security-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .security-item:hover {
+            background-color: #f5f5f5;
+        }
+        .security-item-content {
+            display: flex;
+            align-items: center;
+        }
+        .security-item i {
+            font-size: 20px;
+            color: #ff6b6b;
+            margin-right: 15px;
+        }
+        .security-item-text {
+            display: flex;
+            flex-direction: column;
+        }
+        .security-item-title {
+            font-weight: bold;
+            color: #333;
+        }
+        .security-item-desc {
+            font-size: 12px;
+            color: #999;
+            margin-top: 3px;
+        }
+        .arrow-right {
+            color: #ccc;
+            font-size: 16px;
+        }
+        /* 授权管理页面样式 */
+        .permission-page {
+            display: none;
+        }
+        /* 空间隐私设置页面样式 */
+        .privacy-page {
+            display: none;
+        }
+        /* 滑动开关样式 */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #ff6b6b;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        /* 列表项样式（带开关） */
+        .setting-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .setting-list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .setting-list-item:last-child {
+            border-bottom: none;
+        }
+        .setting-list-item-text {
+            color: #333;
+            font-size: 15px;
+        }
+        /* 黑名单管理页面样式 */
+        .blacklist-page {
+            display: none;
+        }
+        .blacklist-empty {
+            text-align: center;
+            padding: 40px 0;
+            color: #999;
+        }
+        .blacklist-empty i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #ddd;
+        }
+        .blacklist-empty p {
+            font-size: 14px;
+        }
+        /* 实名管理页面样式 */
+        .realname-page {
+            display: none;
+            padding: 20px;
+        }
+        .realname-form {
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            gap: 20px;
+            align-items: center;
+        }
+        /* 底部导航样式 */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #fff;
+            padding: 10px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-around;
+            z-index: 10;
+        }
+        .footer-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            color: #999;
+            z-index: 10;
+        }
+        .footer-btn:hover {
+            color: #ff6b6b;
+        }
+        .footer-btn i {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+        .publish-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #ff6b6b;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            top: -20px;
+        }
+        /* 设置弹出框样式 */
+        .setting-popup {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 200px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 10px 0;
+            display: none;
+            z-index: 999;
+        }
+        .setting-popup::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            right: 30px;
+            border-width: 10px 10px 0;
+            border-style: solid;
+            border-color: #fff transparent transparent;
+        }
+        .setting-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            cursor: pointer;
+            color: #333;
+            font-size: 14px;
+        }
+        .setting-item:hover {
+            background-color: #f5f5f5;
+        }
+        .setting-item i {
+            margin-right: 10px;
+            color: #ff6b6b;
+            font-size: 16px;
+        }
+        .setting-popup.show {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* 提示消息样式 */
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 14px;
+            display: none;
+            z-index: 1000;
+        }
+        .toast.show {
+            display: block;
+            animation: toastShow 0.3s ease, toastHide 0.3s ease 1.5s forwards;
+        }
+        @keyframes toastShow {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes toastHide {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        /* 返回按钮样式 */
+        .back-button {
+            position: fixed;
+            bottom: 90px; /* 在底部导航上方 */
+            left: 15px; /* 最左下角 */
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #fff;
+            color: #ff6b6b;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 99; /* 高于内容区，低于设置弹出框 */
+            font-size: 20px;
+            transition: all 0.2s ease;
+        }
+        .back-button:hover {
+            background-color: #ff6b6b;
+            color: #fff;
+            transform: scale(1.05);
+        }
+        .back-button.hidden {
+            display: none; /* 首页隐藏 */
+        }
+        /* 标签管理页面样式 - 新增 */
+        .tags-page {
+            display: none;
+        }
+        .tags-section {
+            margin-bottom: 30px;
+        }
+        .tags-section-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+            display: flex;
+            align-items: center;
+        }
+        .tags-section-title i {
+            margin-right: 8px;
+            color: #ff6b6b;
+        }
+        /* 标签容器样式 */
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 15px;
+            border-radius: 8px;
+            min-height: 100px;
+        }
+        /* 我的标签容器 */
+        .my-tags-container {
+            background-color: #fef7fb;
+            border: 2px dashed #ffccd5;
+        }
+        /* 总标签容器 */
+        .all-tags-container {
+            background-color: #f0f8fb;
+            border: 2px dashed #b3e0ff;
+        }
+        /* 标签项样式 */
+        .tag-item {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: grab;
+            user-select: none;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+        /* 我的标签项样式 */
+        .my-tag {
+            background-color: #ff6b6b;
+            color: #fff;
+        }
+        /* 总标签项样式 */
+        .all-tag {
+            background-color: #4299e1;
+            color: #fff;
+        }
+        .tag-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .tag-item:active {
+            cursor: grabbing;
+        }
+        /* 标签提示文本 */
+        .tags-placeholder {
+            color: #999;
+            font-size: 14px;
+            align-self: center;
+            margin: 0 auto;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="header">
+        <div class="nav">
+            <div class="nav-item active">首页</div>
+            <div class="nav-item">关注</div>
+            <div class="nav-item">点赞</div>
+            <div class="nav-item">收藏</div>
+        </div>
+        <div class="filter">
+            <button class="filter-btn">按时间</button>
+            <button class="filter-btn">按关注度</button>
+            <button class="filter-btn">按点赞量</button>
+            <button class="filter-btn">按收藏量</button>
+        </div>
+        <div class="search-area">
+            <input type="text" class="search-input" placeholder="搜索头条内容...">
+            <button class="search-btn"><i class="fas fa-search"></i></button>
+        </div>
+        <div class="mine">我的</div>
+    </div>
+
+    <!-- 内容容器：切换所有页面 -->
+    <div class="content-container">
+        <!-- 新闻列表页面 -->
+        <div class="news-list" id="news-list">
+            <div class="post">
+                <!-- 新闻标签 - 新增 -->
+                <div class="post-tags">
+                    <span class="post-tag">校园活动</span>
+                    <span class="post-tag">音乐</span>
+                </div>
+                <div class="post-header">
+                    <div class="avatar">
+                        <img src="https://via.placeholder.com/40/FFCCCC/FFFFFF?text=用" alt="用户头像">
+                        <div class="follow-btn">+</div>
+                    </div>
+                    <div class="user-info">
+                        <div class="nickname">校园达人</div>
+                        <div class="time">2025-11-10 14:30</div>
+                    </div>
+                </div>
+                <div class="post-content">今天校园歌手大赛初赛好精彩，好多实力派选手！</div>
+                <div class="post-actions">
+                    <div class="action-btn like-btn" data-count="128">
+                        <i class="far fa-heart"></i> 点赞 <span class="like-count">128</span>
+                    </div>
+                    <div class="action-btn collect-btn" data-count="56">
+                        <i class="far fa-star"></i> 收藏 <span class="collect-count">56</span>
+                    </div>
+                    <div class="action-btn download-btn" data-count="42">
+                        <i class="fas fa-download"></i> 下载 <span class="download-count">42</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="post">
+                <!-- 新闻标签 - 新增 -->
+                <div class="post-tags">
+                    <span class="post-tag">学术讲座</span>
+                    <span class="post-tag">人工智能</span>
+                    <span class="post-tag">学习</span>
+                </div>
+                <div class="post-header">
+                    <div class="avatar">
+                        <img src="https://via.placeholder.com/40/CCE5FF/FFFFFF?text=学" alt="用户头像">
+                        <div class="follow-btn">+</div>
+                    </div>
+                    <div class="user-info">
+                        <div class="nickname">学术先锋</div>
+                        <div class="time">2025-11-09 09:15</div>
+                    </div>
+                </div>
+                <div class="post-content">下周有场人工智能的学术讲座，主讲人是行业大牛，推荐大家参加！</div>
+                <div class="post-actions">
+                    <div class="action-btn like-btn" data-count="93">
+                        <i class="far fa-heart"></i> 点赞 <span class="like-count">93</span>
+                    </div>
+                    <div class="action-btn collect-btn" data-count="78">
+                        <i class="far fa-star"></i> 收藏 <span class="collect-count">78</span>
+                    </div>
+                    <div class="action-btn download-btn" data-count="35">
+                        <i class="fas fa-download"></i> 下载 <span class="download-count">35</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="post">
+                <!-- 新闻标签 - 新增 -->
+                <div class="post-tags">
+                    <span class="post-tag">体育</span>
+                    <span class="post-tag">篮球</span>
+                </div>
+                <div class="post-header">
+                    <div class="avatar">
+                        <img src="https://via.placeholder.com/40/E5FFCC/FFFFFF?text=体" alt="用户头像">
+                        <div class="follow-btn">+</div>
+                    </div>
+                    <div class="user-info">
+                        <div class="nickname">运动健将</div>
+                        <div class="time">2025-11-08 16:45</div>
+                    </div>
+                </div>
+                <div class="post-content">校篮球赛决赛将于本周末举行，冠军将代表学校参加省赛，一起为球队加油！</div>
+                <div class="post-actions">
+                    <div class="action-btn like-btn" data-count="156">
+                        <i class="far fa-heart"></i> 点赞 <span class="like-count">156</span>
+                    </div>
+                    <div class="action-btn collect-btn" data-count="43">
+                        <i class="far fa-star"></i> 收藏 <span class="collect-count">43</span>
+                    </div>
+                    <div class="action-btn download-btn" data-count="28">
+                        <i class="fas fa-download"></i> 下载 <span class="download-count">28</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 个人资料页面 -->
+        <div class="common-page profile-page" id="profile-page">
+            <h2 class="page-title"><i class="fas fa-user"></i>账号资料</h2>
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <img src="https://via.placeholder.com/100/FFE5E5/FF6B6B?text=我" alt="个人头像" id="profile-avatar-img">
+                    <div class="avatar-upload">
+                        <label for="avatar-input">更换头像</label>
+                        <input type="file" id="avatar-input" accept="image/*">
+                    </div>
+                </div>
+                <h3 id="profile-nickname-preview">校园用户</h3>
+            </div>
+
+            <form class="profile-form" id="profile-form">
+                <label class="form-label">昵称：</label>
+                <input type="text" class="form-input" id="nickname" placeholder="请输入昵称" required value="校园用户">
+
+                <label class="form-label">性别：</label>
+                <select class="form-select" id="gender" required>
+                    <option value="">请选择</option>
+                    <option value="男" selected>男</option>
+                    <option value="女">女</option>
+                    <option value="保密">保密</option>
+                </select>
+
+                <label class="form-label">出生年月：</label>
+                <input type="date" class="form-input" id="birthdate" required value="2003-09-15">
+
+                <label class="form-label">个性签名：</label>
+                <textarea class="form-textarea" id="signature" placeholder="请输入个性签名（最多100字）" maxlength="100">热爱校园生活，分享精彩瞬间～</textarea>
+
+                <label class="form-label">UID：</label>
+                <input type="text" class="form-input" id="uid" disabled value="USER123456">
+
+                <button type="submit" class="submit-btn">保存资料</button>
+            </form>
+        </div>
+
+        <!-- 安全隐私页面 -->
+        <div class="common-page security-page" id="security-page">
+            <h2 class="page-title"><i class="fas fa-shield-alt"></i>安全隐私</h2>
+            <div class="security-list">
+                <div class="security-item" id="realname-item">
+                    <div class="security-item-content">
+                        <i class="fas fa-id-card"></i>
+                        <div class="security-item-text">
+                            <div class="security-item-title">实名管理</div>
+                            <div class="security-item-desc">完成实名认证，享受更多服务</div>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right arrow-right"></i>
+                </div>
+                <div class="security-item" id="permission-item">
+                    <div class="security-item-content">
+                        <i class="fas fa-key"></i>
+                        <div class="security-item-text">
+                            <div class="security-item-title">授权管理</div>
+                            <div class="security-item-desc">管理应用权限及通知设置</div>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right arrow-right"></i>
+                </div>
+                <div class="security-item" id="privacy-item">
+                    <div class="security-item-content">
+                        <i class="fas fa-lock"></i>
+                        <div class="security-item-text">
+                            <div class="security-item-title">空间隐私设置</div>
+                            <div class="security-item-desc">控制个人动态的公开范围</div>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right arrow-right"></i>
+                </div>
+                <div class="security-item" id="blacklist-item">
+                    <div class="security-item-content">
+                        <i class="fas fa-user-slash"></i>
+                        <div class="security-item-text">
+                            <div class="security-item-title">黑名单管理</div>
+                            <div class="security-item-desc">管理已拉黑的用户</div>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right arrow-right"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- 授权管理页面 -->
+        <div class="common-page permission-page" id="permission-page">
+            <h2 class="page-title"><i class="fas fa-key"></i>授权管理</h2>
+            <div class="setting-list">
+                <div class="setting-list-item">
+                    <span class="setting-list-item-text">消息通知</span>
+                    <label class="switch">
+                        <input type="checkbox" id="notify-switch" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-list-item">
+                    <span class="setting-list-item-text">存储空间权限</span>
+                    <label class="switch">
+                        <input type="checkbox" id="storage-switch" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-list-item">
+                    <span class="setting-list-item-text">Wifi下自动更新</span>
+                    <label class="switch">
+                        <input type="checkbox" id="wifi-update-switch" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-list-item">
+                    <span class="setting-list-item-text">Wifi及移动流量下自动更新</span>
+                    <label class="switch">
+                        <input type="checkbox" id="all-network-update-switch">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- 空间隐私设置页面 -->
+        <div class="common-page privacy-page" id="privacy-page">
+            <h2 class="page-title"><i class="fas fa-lock"></i>空间隐私设置</h2>
+            <div class="setting-list">
+                <div class="setting-list-item">
+                    <span class="setting-list-item-text">公开我的喜欢</span>
+                    <label class="switch">
+                        <input type="checkbox" id="public-like-switch" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-list-item">
+                    <span class="setting-list-item-text">公开我的收藏</span>
+                    <label class="switch">
+                        <input type="checkbox" id="public-collect-switch" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-list-item">
+                    <span class="setting-list-item-text">公开我的关注</span>
+                    <label class="switch">
+                        <input type="checkbox" id="public-follow-switch">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-list-item">
+                    <span class="setting-list-item-text">公开我的下载</span>
+                    <label class="switch">
+                        <input type="checkbox" id="public-download-switch">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- 黑名单管理页面 -->
+        <div class="common-page blacklist-page" id="blacklist-page">
+            <h2 class="page-title"><i class="fas fa-user-slash"></i>黑名单管理</h2>
+            <div class="blacklist-empty">
+                <i class="fas fa-user-slash"></i>
+                <p>暂无拉黑用户</p>
+            </div>
+        </div>
+
+        <!-- 实名管理页面 -->
+        <div class="common-page realname-page" id="realname-page">
+            <h2 class="page-title"><i class="fas fa-id-card"></i>实名管理</h2>
+            <form class="realname-form" id="realname-form">
+                <label class="form-label">姓名：</label>
+                <input type="text" class="form-input" id="realname" placeholder="请输入真实姓名" required>
+
+                <label class="form-label">身份证号：</label>
+                <input type="text" class="form-input" id="id-card" placeholder="请输入18位身份证号" required maxlength="18">
+
+                <button type="submit" class="submit-btn" style="grid-column: 2;">提交认证</button>
+            </form>
+        </div>
+
+        <!-- 标签管理页面 - 新增 -->
+        <div class="common-page tags-page" id="tags-page">
+            <h2 class="page-title"><i class="fas fa-tags"></i>首页推荐设置</h2>
+            
+            <!-- 我的标签区域 -->
+            <div class="tags-section">
+                <h3 class="tags-section-title"><i class="fas fa-user-tag"></i>我的标签（拖拽添加）</h3>
+                <div class="tags-container my-tags-container" id="my-tags-container" droppable="true">
+                    <!-- 初始默认标签 -->
+                    <div class="tag-item my-tag" draggable="true" data-tag="校园活动">校园活动</div>
+                    <div class="tag-item my-tag" draggable="true" data-tag="学习">学习</div>
+                    <div class="tag-item my-tag" draggable="true" data-tag="音乐">音乐</div>
+                    <!-- 占位提示 -->
+                    <div class="tags-placeholder" id="my-tags-placeholder" style="display: none;">暂无标签，可从下方拖拽添加</div>
+                </div>
+            </div>
+
+            <!-- 总标签区域 -->
+            <div class="tags-section">
+                <h3 class="tags-section-title"><i class="fas fa-tags"></i>总标签（拖拽选择）</h3>
+                <div class="tags-container all-tags-container" id="all-tags-container" droppable="true">
+                    <!-- 总标签列表 -->
+                    <div class="tag-item all-tag" draggable="true" data-tag="体育">体育</div>
+                    <div class="tag-item all-tag" draggable="true" data-tag="篮球">篮球</div>
+                    <div class="tag-item all-tag" draggable="true" data-tag="足球">足球</div>
+                    <div class="tag-item all-tag" draggable="true" data-tag="学术">学术</div>
+                    <div class="tag-item all-tag" draggable="true" data-tag="讲座">讲座</div>
+                    <div class="tag-item all-tag" draggable="true" data-tag="文化">文化</div>
+                    <div class="tag-item all-tag" draggable="true" data-tag="艺术">艺术</div>
+                    <div class="tag-item all-tag" draggable="true" data-tag="通知">通知</div>
+                    <div class="tag-item all-tag" draggable="true" data-tag="公告">公告</div>
+                    <div class="tag-item all-tag" draggable="true" data-tag="招聘">招聘</div>
+                    <div class="tag-item all-tag" draggable="true" data-tag="兼职">兼职</div>
+                    <div class="tag-item all-tag" draggable="true" data-tag="美食">美食</div>
+                    <div class="tag-item all-tag" draggable="true" data-tag="旅行">旅行</div>
+                    <div class="tag-item all-tag" draggable="true" data-tag="科技">科技</div>
+                    <div class="tag-item all-tag" draggable="true" data-tag="电影">电影</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部导航 -->
+    <div class="footer">
+        <div class="footer-btn" id="news-btn">
+            <i class="fas fa-th-large"></i>
+            <span>头条圈子</span>
+        </div>
+        <div class="publish-btn">
+            <i class="fas fa-plus"></i>
+        </div>
+        <div class="footer-btn" id="setting-btn">
+            <i class="fas fa-cog"></i>
+            <span>设置</span>
+        </div>
+    </div>
+
+    <!-- 返回按钮 -->
+    <div class="back-button hidden" id="back-button">
+        <i class="fas fa-arrow-left"></i>
+    </div>
+
+    <!-- 设置弹出框 -->
+    <div class="setting-popup" id="setting-popup">
+        <div class="setting-item" id="profile-item">
+            <i class="fas fa-user"></i>
+            <span>账号资料</span>
+        </div>
+        <div class="setting-item" id="security-main-item">
+            <i class="fas fa-shield-alt"></i>
+            <span>安全隐私</span>
+        </div>
+        <div class="setting-item" id="tags-main-item"> <!-- 新增标签设置项 -->
+            <i class="fas fa-thumbs-up"></i>
+            <span>首页推荐设置</span>
+        </div>
+        <div class="setting-item">
+            <i class="fas fa-download"></i>
+            <span>下载管理</span>
+        </div>
+    </div>
+
+    <!-- 提示消息 -->
+    <div class="toast" id="toast">操作成功</div>
+
+    <script>
+        // DOM元素
+        const newsList = document.getElementById('news-list');
+        const profilePage = document.getElementById('profile-page');
+        const securityPage = document.getElementById('security-page');
+        const permissionPage = document.getElementById('permission-page');
+        const privacyPage = document.getElementById('privacy-page');
+        const blacklistPage = document.getElementById('blacklist-page');
+        const realnamePage = document.getElementById('realname-page');
+        const tagsPage = document.getElementById('tags-page'); // 新增标签页面
+        
+        const settingBtn = document.getElementById('setting-btn');
+        const settingPopup = document.getElementById('setting-popup');
+        const profileItem = document.getElementById('profile-item');
+        const securityMainItem = document.getElementById('security-main-item');
+        const tagsMainItem = document.getElementById('tags-main-item'); // 新增标签设置项
+        const newsBtn = document.getElementById('news-btn');
+        const profileForm = document.getElementById('profile-form');
+        const avatarInput = document.getElementById('avatar-input');
+        const profileAvatarImg = document.getElementById('profile-avatar-img');
+        const profileNicknamePreview = document.getElementById('profile-nickname-preview');
+        const toast = document.getElementById('toast');
+        const backButton = document.getElementById('back-button');
+        
+        // 安全隐私相关元素
+        const realnameItem = document.getElementById('realname-item');
+        const permissionItem = document.getElementById('permission-item');
+        const privacyItem = document.getElementById('privacy-item');
+        const blacklistItem = document.getElementById('blacklist-item');
+        const realnameForm = document.getElementById('realname-form');
+
+        // 标签管理相关元素 - 新增
+        const myTagsContainer = document.getElementById('my-tags-container');
+        const allTagsContainer = document.getElementById('all-tags-container');
+        const myTagsPlaceholder = document.getElementById('my-tags-placeholder');
+
+        // 所有页面元素
+        const allPages = [
+            newsList, profilePage, securityPage, permissionPage, 
+            privacyPage, blacklistPage, realnamePage, tagsPage // 新增标签页面
+        ];
+
+        // 页面导航历史栈
+        const pageHistory = [];
+        // 初始页面
+        const initialPage = newsList;
+
+        // 1. 页面加载完成初始化
+        window.onload = () => {
+            // 初始化本地存储的用户资料
+            initUserProfile();
+            // 初始化开关状态
+            initSwitchStates();
+            // 初始化页面历史栈
+            initPageHistory();
+            // 绑定返回按钮事件
+            bindBackButtonEvent();
+            // 初始化标签拖动功能 - 新增
+            initTagDragAndDrop();
+            // 检查我的标签占位符显示状态 - 新增
+            checkMyTagsPlaceholder();
+        };
+
+        // 2. 初始化页面历史栈
+        function initPageHistory() {
+            // 清空历史栈
+            pageHistory.length = 0;
+            // 添加初始页面
+            pageHistory.push(initialPage);
+            // 更新返回按钮显示状态
+            updateBackButtonVisibility();
+        }
+
+        // 3. 更新返回按钮显示状态
+        function updateBackButtonVisibility() {
+            // 只有当历史栈长度 > 1 时显示返回按钮
+            if (pageHistory.length > 1) {
+                backButton.classList.remove('hidden');
+            } else {
+                backButton.classList.add('hidden');
+            }
+        }
+
+        // 4. 绑定返回按钮事件
+        function bindBackButtonEvent() {
+            backButton.addEventListener('click', () => {
+                // 移除当前页面（历史栈最后一个元素）
+                if (pageHistory.length > 1) {
+                    pageHistory.pop();
+                    // 获取上一个页面
+                    const prevPage = pageHistory[pageHistory.length - 1];
+                    // 显示上一个页面
+                    showPage(prevPage, false); // false表示不添加到历史栈
+                    showToast('返回上一页');
+                }
+            });
+        }
+
+        // 5. 初始化用户资料（从localStorage读取或使用默认值）
+        function initUserProfile() {
+            const savedProfile = localStorage.getItem('userProfile');
+            if (savedProfile) {
+                const userData = JSON.parse(savedProfile);
+                // 填充表单
+                document.getElementById('nickname').value = userData.nickname || '校园用户';
+                document.getElementById('gender').value = userData.gender || '男';
+                document.getElementById('birthdate').value = userData.birthdate || '2003-09-15';
+                document.getElementById('signature').value = userData.signature || '热爱校园生活，分享精彩瞬间～';
+                document.getElementById('uid').value = userData.uid || 'USER123456';
+                // 更新预览
+                profileNicknamePreview.textContent = userData.nickname || '校园用户';
+                if (userData.avatar) {
+                    profileAvatarImg.src = userData.avatar;
+                }
+            }
+        }
+
+        // 6. 初始化开关状态（从localStorage读取）
+        function initSwitchStates() {
+            const savedSwitches = JSON.parse(localStorage.getItem('switchStates') || '{}');
+            
+            // 授权管理开关
+            document.getElementById('notify-switch').checked = savedSwitches.notify || true;
+            document.getElementById('storage-switch').checked = savedSwitches.storage || true;
+            document.getElementById('wifi-update-switch').checked = savedSwitches.wifiUpdate || true;
+            document.getElementById('all-network-update-switch').checked = savedSwitches.allNetworkUpdate || false;
+            
+            // 空间隐私开关
+            document.getElementById('public-like-switch').checked = savedSwitches.publicLike || true;
+            document.getElementById('public-collect-switch').checked = savedSwitches.publicCollect || true;
+            document.getElementById('public-follow-switch').checked = savedSwitches.publicFollow || false;
+            document.getElementById('public-download-switch').checked = savedSwitches.publicDownload || false;
+            
+            // 绑定开关变化事件
+            bindSwitchEvents();
+        }
+
+        // 7. 绑定开关变化事件（保存到localStorage）
+        function bindSwitchEvents() {
+            // 授权管理开关
+            document.getElementById('notify-switch').addEventListener('change', function() {
+                saveSwitchState('notify', this.checked);
+            });
+            document.getElementById('storage-switch').addEventListener('change', function() {
+                saveSwitchState('storage', this.checked);
+            });
+            document.getElementById('wifi-update-switch').addEventListener('change', function() {
+                saveSwitchState('wifiUpdate', this.checked);
+            });
+            document.getElementById('all-network-update-switch').addEventListener('change', function() {
+                saveSwitchState('allNetworkUpdate', this.checked);
+            });
+            
+            // 空间隐私开关
+            document.getElementById('public-like-switch').addEventListener('change', function() {
+                saveSwitchState('publicLike', this.checked);
+            });
+            document.getElementById('public-collect-switch').addEventListener('change', function() {
+                saveSwitchState('publicCollect', this.checked);
+            });
+            document.getElementById('public-follow-switch').addEventListener('change', function() {
+                saveSwitchState('publicFollow', this.checked);
+            });
+            document.getElementById('public-download-switch').addEventListener('change', function() {
+                saveSwitchState('publicDownload', this.checked);
+            });
+        }
+
+        // 8. 保存开关状态到localStorage
+        function saveSwitchState(key, value) {
+            const savedSwitches = JSON.parse(localStorage.getItem('switchStates') || '{}');
+            savedSwitches[key] = value;
+            localStorage.setItem('switchStates', JSON.stringify(savedSwitches));
+            showToast(value ? '已开启' : '已关闭');
+        }
+
+        // 9. 保存用户资料（存储到localStorage）
+        profileForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            // 收集表单数据
+            const userData = {
+                nickname: document.getElementById('nickname').value,
+                gender: document.getElementById('gender').value,
+                birthdate: document.getElementById('birthdate').value,
+                signature: document.getElementById('signature').value,
+                uid: document.getElementById('uid').value,
+                avatar: profileAvatarImg.src
+            };
+
+            // 保存到本地存储
+            localStorage.setItem('userProfile', JSON.stringify(userData));
+
+            // 更新预览
+            profileNicknamePreview.textContent = userData.nickname;
+
+            // 显示提示
+            showToast('资料保存成功');
+        });
+
+        // 10. 头像上传预览（仅前端预览）
+        avatarInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    profileAvatarImg.src = event.target.result;
+                    // 同时更新本地存储中的头像
+                    const savedProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                    savedProfile.avatar = event.target.result;
+                    localStorage.setItem('userProfile', JSON.stringify(savedProfile));
+                    showToast('头像预览成功');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 11. 实名认证提交
+        realnameForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const realname = document.getElementById('realname').value;
+            const idCard = document.getElementById('id-card').value;
+            
+            if (!realname || !idCard) {
+                showToast('请填写完整信息');
+                return;
+            }
+            
+            if (idCard.length !== 18) {
+                showToast('身份证号格式不正确');
+                return;
+            }
+            
+            // 保存实名认证信息到本地存储
+            localStorage.setItem('realnameInfo', JSON.stringify({
+                realname,
+                idCard,
+                verified: true
+            }));
+            
+            showToast('实名认证提交成功，等待审核');
+            // 返回安全隐私页面
+            goBackToPrevPage();
+        });
+
+        // 12. 页面切换函数
+        function showPage(targetPage, addToHistory = true) {
+            // 隐藏所有页面
+            allPages.forEach(page => {
+                page.style.display = 'none';
+            });
+            // 显示目标页面
+            targetPage.style.display = 'block';
+            // 关闭设置弹出框
+            settingPopup.classList.remove('show');
+            
+            // 添加到历史栈（默认添加）
+            if (addToHistory && pageHistory[pageHistory.length - 1] !== targetPage) {
+                pageHistory.push(targetPage);
+            }
+            
+            // 更新返回按钮显示状态
+            updateBackButtonVisibility();
+        }
+
+        // 13. 返回上一页函数
+        function goBackToPrevPage() {
+            if (pageHistory.length > 1) {
+                pageHistory.pop();
+                const prevPage = pageHistory[pageHistory.length - 1];
+                showPage(prevPage, false);
+            }
+        }
+
+        // 14. 页面切换逻辑
+        // 点击账号资料 -> 显示个人资料页
+        profileItem.addEventListener('click', () => {
+            showPage(profilePage);
+        });
+
+        // 点击安全隐私 -> 显示安全隐私页
+        securityMainItem.addEventListener('click', () => {
+            showPage(securityPage);
+        });
+
+        // 点击首页推荐设置 -> 显示标签管理页面 - 新增
+        tagsMainItem.addEventListener('click', () => {
+            showPage(tagsPage);
+        });
+
+        // 点击头条圈子 -> 显示新闻列表（重置历史栈）
+        newsBtn.addEventListener('click', () => {
+            initPageHistory(); // 重置历史栈
+            showPage(newsList, false);
+        });
+
+        // 安全隐私子项点击
+        realnameItem.addEventListener('click', () => {
+            showPage(realnamePage);
+        });
+
+        permissionItem.addEventListener('click', () => {
+            showPage(permissionPage);
+        });
+
+        privacyItem.addEventListener('click', () => {
+            showPage(privacyPage);
+        });
+
+        blacklistItem.addEventListener('click', () => {
+            showPage(blacklistPage);
+        });
+
+        // 15. 设置弹出框逻辑
+        settingBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            settingPopup.classList.toggle('show');
+        });
+
+        settingPopup.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        document.addEventListener('click', () => {
+            settingPopup.classList.remove('show');
+        });
+
+        // 16. 其他设置项点击事件
+        document.querySelectorAll('.setting-item:not(#profile-item):not(#security-main-item):not(#tags-main-item)').forEach(item => {
+            item.addEventListener('click', () => {
+                const text = item.querySelector('span').textContent;
+                showToast(`(${text}) 功能开发中`);
+                settingPopup.classList.remove('show');
+            });
+        });
+
+        // 17. 点赞/收藏/下载按钮交互
+        // 点赞按钮
+        document.querySelectorAll('.like-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const countEl = this.querySelector('.like-count');
+                let currentCount = parseInt(countEl.textContent);
+                
+                if (this.classList.contains('active')) {
+                    currentCount--;
+                    this.classList.remove('active');
+                } else {
+                    currentCount++;
+                    this.classList.add('active');
+                }
+                
+                countEl.textContent = currentCount;
+                this.setAttribute('data-count', currentCount);
+            });
+        });
+
+        // 收藏按钮
+        document.querySelectorAll('.collect-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const countEl = this.querySelector('.collect-count');
+                let currentCount = parseInt(countEl.textContent);
+                
+                if (this.classList.contains('active')) {
+                    currentCount--;
+                    this.classList.remove('active');
+                } else {
+                    currentCount++;
+                    this.classList.add('active');
+                }
+                
+                countEl.textContent = currentCount;
+                this.setAttribute('data-count', currentCount);
+            });
+        });
+
+        // 下载按钮
+        document.querySelectorAll('.download-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const countEl = this.querySelector('.download-count');
+                let currentCount = parseInt(countEl.textContent);
+                currentCount++;
+                countEl.textContent = currentCount;
+                this.setAttribute('data-count', currentCount);
+                showToast('下载成功');
+            });
+        });
+
+        // 18. 关注按钮交互
+        document.querySelectorAll('.follow-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.textContent === '+') {
+                    this.textContent = '√';
+                    this.style.backgroundColor = '#ff6b6b';
+                    showToast('关注成功');
+                } else {
+                    this.textContent = '+';
+                    this.style.backgroundColor = '#4ecdc4';
+                    showToast('取消关注');
+                }
+            });
+        });
+
+        // 19. 提示消息函数
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // 20. 初始化标签拖动功能 - 新增
+        function initTagDragAndDrop() {
+            // 给所有标签添加拖动事件
+            document.querySelectorAll('.tag-item').forEach(tag => {
+                // 开始拖动
+                tag.addEventListener('dragstart', function(e) {
+                    // 设置拖动数据
+                    e.dataTransfer.setData('text/plain', this.getAttribute('data-tag'));
+                    // 添加拖动样式
+                    this.style.opacity = '0.5';
+                    setTimeout(() => {
+                        this.style.visibility = 'hidden';
+                    }, 0);
+                });
+
+                // 结束拖动
+                tag.addEventListener('dragend', function() {
+                    // 恢复样式
+                    this.style.opacity = '1';
+                    this.style.visibility = 'visible';
+                });
+            });
+
+            // 我的标签容器 - 允许接收拖拽
+            myTagsContainer.addEventListener('dragover', function(e) {
+                e.preventDefault(); // 允许放置
+                this.style.backgroundColor = '#fdf2f8';
+            });
+
+            myTagsContainer.addEventListener('dragleave', function() {
+                this.style.backgroundColor = '#fef7fb';
+            });
+
+            myTagsContainer.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.style.backgroundColor = '#fef7fb';
+                
+                // 获取拖动的标签数据
+                const tagName = e.dataTransfer.getData('text/plain');
+                
+                // 检查是否已存在该标签
+                const existingTags = Array.from(this.querySelectorAll('.tag-item'))
+                    .map(item => item.getAttribute('data-tag'));
+                
+                if (!existingTags.includes(tagName)) {
+                    // 创建新的我的标签
+                    const newTag = document.createElement('div');
+                    newTag.className = 'tag-item my-tag';
+                    newTag.draggable = 'true';
+                    newTag.setAttribute('data-tag', tagName);
+                    newTag.textContent = tagName;
+                    
+                    // 添加到我的标签容器
+                    this.appendChild(newTag);
+                    
+                    // 给新标签添加拖动事件
+                    initSingleTagDrag(newTag);
+                    
+                    // 隐藏占位符
+                    myTagsPlaceholder.style.display = 'none';
+                    
+                    showToast(`已添加标签：${tagName}`);
+                } else {
+                    showToast(`已存在标签：${tagName}`);
+                }
+            });
+
+            // 总标签容器 - 允许接收拖拽（从我的标签拖回）
+            allTagsContainer.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.style.backgroundColor = '#e8f4f8';
+            });
+
+            allTagsContainer.addEventListener('dragleave', function() {
+                this.style.backgroundColor = '#f0f8fb';
+            });
+
+            allTagsContainer.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.style.backgroundColor = '#f0f8fb';
+                
+                // 获取拖动的标签数据
+                const tagName = e.dataTransfer.getData('text/plain');
+                
+                // 从我的标签中移除该标签
+                const myTag = myTagsContainer.querySelector(`.tag-item[data-tag="${tagName}"]`);
+                if (myTag) {
+                    myTag.remove();
+                    
+                    // 检查是否需要显示占位符
+                    checkMyTagsPlaceholder();
+                    
+                    showToast(`已移除标签：${tagName}`);
+                }
+            });
+        }
+
+        // 21. 初始化单个标签的拖动事件 - 新增
+        function initSingleTagDrag(tagElement) {
+            tagElement.addEventListener('dragstart', function(e) {
+                e.dataTransfer.setData('text/plain', this.getAttribute('data-tag'));
+                this.style.opacity = '0.5';
+                setTimeout(() => {
+                    this.style.visibility = 'hidden';
+                }, 0);
+            });
+
+            tagElement.addEventListener('dragend', function() {
+                this.style.opacity = '1';
+                this.style.visibility = 'visible';
+            });
+        }
+
+        // 22. 检查我的标签占位符显示状态 - 新增
+        function checkMyTagsPlaceholder() {
+            const myTagsCount = myTagsContainer.querySelectorAll('.tag-item').length;
+            if (myTagsCount === 0) {
+                myTagsPlaceholder.style.display = 'block';
+            } else {
+                myTagsPlaceholder.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

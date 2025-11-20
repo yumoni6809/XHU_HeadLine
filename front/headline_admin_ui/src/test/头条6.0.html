@@ -1,0 +1,1718 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校园头条</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background-color: #f5f5f5;
+            padding-bottom: 80px;
+            padding-left: 10px;
+        }
+        .header {
+            background-color: #fff;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            position: relative;
+            z-index: 1;
+        }
+        .nav {
+            display: flex;
+            margin-bottom: 10px;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+        .nav::-webkit-scrollbar { display: none; }
+        .nav-item {
+            padding: 8px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px;
+            margin-right: 5px;
+            white-space: nowrap;
+        }
+        .nav-item.active {
+            background-color: #ff6b6b;
+            color: #fff;
+        }
+        .filter {
+            display: flex;
+            margin-top: 10px;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+        .filter::-webkit-scrollbar { display: none; }
+        .filter-btn {
+            padding: 6px 12px;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 5px;
+            background-color: #fff;
+            white-space: nowrap;
+        }
+        .filter-btn:hover { background-color: #f0f0f0; }
+        .filter-btn.active {
+            background-color: #ff6b6b;
+            color: #fff;
+            border-color: #ff6b6b;
+        }
+        .search-area {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .search-input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px 0 0 4px;
+        }
+        .search-btn {
+            padding: 8px 15px;
+            background-color: #ff6b6b;
+            color: #fff;
+            border: none;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+        }
+        .my-publish {
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+        .my-publish:hover { background-color: #f5f5f5; }
+        /* 内容区样式 */
+        .content-container {
+            padding: 10px;
+            margin-bottom: 20px;
+            min-height: calc(100vh - 180px);
+        }
+        /* 通用列表页面样式 */
+        .list-page { display: none; }
+        .empty-state {
+            text-align: center;
+            padding: 60px 0;
+            color: #999;
+        }
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            color: #ddd;
+        }
+        .empty-state p {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .empty-state small { font-size: 14px; color: #ccc; }
+        /* 新闻列表样式 */
+        .news-list { display: block; }
+        .post, .download-post {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: relative;
+        }
+        .post-tags {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 8px;
+        }
+        .post-tag {
+            padding: 3px 8px;
+            background-color: #f0f5ff;
+            color: #4299e1;
+            border-radius: 12px;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .post-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #ffcccc;
+            margin-right: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .follow-btn {
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #4ecdc4;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .user-info { flex: 1; }
+        .nickname { font-weight: bold; }
+        .time { font-size: 12px; color: #999; }
+        .post-content {
+            line-height: 1.6;
+            margin-bottom: 10px;
+            padding-right: 80px;
+        }
+        .post-actions { display: flex; justify-content: flex-end; }
+        .action-btn {
+            display: flex;
+            align-items: center;
+            margin-left: 15px;
+            cursor: pointer;
+            color: #999;
+        }
+        .action-btn:hover { color: #ff6b6b; }
+        .action-btn i { margin-right: 5px; }
+        .action-btn.active { color: #ff6b6b; }
+        .action-btn.active i.far { font-weight: 900; }
+        .delete-btn { color: #ff4d4f; }
+        .delete-btn:hover { color: #ff1f1f; }
+        /* 通用页面样式 */
+        .common-page {
+            display: none;
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .page-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 25px;
+            color: #333;
+            display: flex;
+            align-items: center;
+        }
+        .page-title i {
+            margin-right: 10px;
+            color: #ff6b6b;
+        }
+        /* 个人资料页面样式 */
+        .profile-page { display: none; }
+        .profile-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            margin: 0 auto 15px;
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
+        }
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .avatar-upload {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            padding: 5px;
+            font-size: 12px;
+            display: none;
+        }
+        .profile-avatar:hover .avatar-upload { display: block; }
+        #avatar-input { display: none; }
+        .profile-form {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            gap: 20px;
+            align-items: center;
+        }
+        .form-label {
+            font-weight: bold;
+            color: #333;
+            text-align: right;
+        }
+        .form-input, .form-select, .form-textarea {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+            font-size: 14px;
+        }
+        .form-textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        .form-input:disabled {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+        }
+        .submit-btn {
+            grid-column: 2;
+            padding: 12px;
+            background-color: #ff6b6b;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .submit-btn:hover { background-color: #ff5252; }
+        /* 安全隐私页面样式 */
+        .security-page { display: none; }
+        .security-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .security-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .security-item:hover { background-color: #f5f5f5; }
+        .security-item-content { display: flex; align-items: center; }
+        .security-item i {
+            font-size: 20px;
+            color: #ff6b6b;
+            margin-right: 15px;
+        }
+        .security-item-text { display: flex; flex-direction: column; }
+        .security-item-title { font-weight: bold; color: #333; }
+        .security-item-desc {
+            font-size: 12px;
+            color: #999;
+            margin-top: 3px;
+        }
+        .arrow-right { color: #ccc; font-size: 16px; }
+        /* 授权管理页面样式 */
+        .permission-page { display: none; }
+        /* 空间隐私设置页面样式 */
+        .privacy-page { display: none; }
+        /* 滑动开关样式 */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #ff6b6b; }
+        input:checked + .slider:before { transform: translateX(26px); }
+        /* 列表项样式（带开关） */
+        .setting-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .setting-list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .setting-list-item:last-child { border-bottom: none; }
+        .setting-list-item-text { color: #333; font-size: 15px; }
+        /* 黑名单管理页面样式 */
+        .blacklist-page { display: none; }
+        .blacklist-empty {
+            text-align: center;
+            padding: 40px 0;
+            color: #999;
+        }
+        .blacklist-empty i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #ddd;
+        }
+        .blacklist-empty p { font-size: 14px; }
+        /* 实名管理页面样式 */
+        .realname-page { display: none; padding: 20px; }
+        .realname-form {
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            gap: 20px;
+            align-items: center;
+        }
+        /* 底部导航样式 */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #fff;
+            padding: 10px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-around;
+            z-index: 10;
+        }
+        .footer-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            color: #999;
+            z-index: 10;
+        }
+        .footer-btn:hover { color: #ff6b6b; }
+        .footer-btn i {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+        .publish-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #ff6b6b;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            top: -20px;
+        }
+        /* 设置弹出框样式 */
+        .setting-popup {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 200px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 10px 0;
+            display: none;
+            z-index: 999;
+        }
+        .setting-popup::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            right: 30px;
+            border-width: 10px 10px 0;
+            border-style: solid;
+            border-color: #fff transparent transparent;
+        }
+        .setting-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            cursor: pointer;
+            color: #333;
+            font-size: 14px;
+        }
+        .setting-item:hover { background-color: #f5f5f5; }
+        .setting-item i {
+            margin-right: 10px;
+            color: #ff6b6b;
+            font-size: 16px;
+        }
+        .logout-item {
+            color: #ff4d4f !important;
+            border-top: 1px solid #f0f0f0;
+            margin-top: 5px;
+            padding-top: 15px;
+        }
+        .logout-item i { color: #ff4d4f !important; }
+        .setting-popup.show {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* 提示消息样式 */
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 14px;
+            display: none;
+            z-index: 1000;
+        }
+        .toast.show {
+            display: block;
+            animation: toastShow 0.3s ease, toastHide 0.3s ease 1.5s forwards;
+        }
+        @keyframes toastShow { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes toastHide { from { opacity: 1; } to { opacity: 0; } }
+        /* 返回按钮样式（优化：固定左下角，始终可见） */
+        .back-button {
+            position: fixed;
+            bottom: 20px;
+            left: 15px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #fff;
+            color: #ff6b6b;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 999; /* 确保在所有内容上方 */
+            font-size: 20px;
+            transition: all 0.2s ease;
+        }
+        .back-button:hover {
+            background-color: #ff6b6b;
+            color: #fff;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        /* 标签管理页面样式 */
+        .tags-page { display: none; }
+        .tags-section { margin-bottom: 30px; }
+        .tags-section-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+            display: flex;
+            align-items: center;
+        }
+        .tags-section-title i {
+            margin-right: 8px;
+            color: #ff6b6b;
+        }
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 15px;
+            border-radius: 8px;
+            min-height: 100px;
+        }
+        .my-tags-container {
+            background-color: #fef7fb;
+            border: 2px dashed #ffccd5;
+        }
+        .all-tags-container {
+            background-color: #f0f8fb;
+            border: 2px dashed #b3e0ff;
+        }
+        .tag-item {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: grab;
+            user-select: none;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+        .my-tag { background-color: #ff6b6b; color: #fff; }
+        .all-tag { background-color: #4299e1; color: #fff; }
+        .tag-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .tag-item:active { cursor: grabbing; }
+        .tags-placeholder {
+            color: #999;
+            font-size: 14px;
+            align-self: center;
+            margin: 0 auto;
+        }
+        /* 下载管理页面样式 */
+        .download-page { display: none; }
+    </style>
+    <!-- 稳定的 Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="header">
+        <div class="nav">
+            <div class="nav-item active" id="home-nav">首页</div>
+            <div class="nav-item" id="my-like-nav">我的点赞</div>
+            <div class="nav-item" id="my-collect-nav">我的收藏</div>
+            <div class="nav-item" id="my-follow-nav">我的关注</div>
+        </div>
+        <div class="filter">
+            <button class="filter-btn active" id="filter-time">按时间</button>
+            <button class="filter-btn" id="filter-popularity">按关注度</button>
+            <button class="filter-btn" id="filter-like">按点赞量</button>
+            <button class="filter-btn" id="filter-collect">按收藏量</button>
+            <button class="filter-btn" id="filter-download">按下载量</button>
+        </div>
+        <div class="search-area">
+            <input type="text" class="search-input" placeholder="搜索头条内容...">
+            <button class="search-btn"><i class="fas fa-search"></i></button>
+        </div>
+        <div class="my-publish" id="my-publish-nav">我的发布</div>
+    </div>
+
+    <!-- 内容容器：切换所有页面 -->
+    <div class="content-container">
+        <!-- 首页新闻列表 -->
+        <div class="list-page news-list" id="news-list">
+            <div class="post" data-post-id="post1">
+                <div class="post-tags">
+                    <span class="post-tag">校园活动</span>
+                    <span class="post-tag">音乐</span>
+                </div>
+                <div class="post-header">
+                    <div class="avatar">
+                        <img src="https://via.placeholder.com/40/FFCCCC/FFFFFF?text=用" alt="用户头像">
+                        <div class="follow-btn" data-user="校园达人">+</div>
+                    </div>
+                    <div class="user-info">
+                        <div class="nickname">校园达人</div>
+                        <div class="time">2025-11-10 14:30</div>
+                    </div>
+                </div>
+                <div class="post-content">今天校园歌手大赛初赛好精彩，好多实力派选手！</div>
+                <div class="post-actions">
+                    <div class="action-btn like-btn" data-count="128" data-post-id="post1">
+                        <i class="far fa-heart"></i> 点赞 <span class="like-count">128</span>
+                    </div>
+                    <div class="action-btn collect-btn" data-count="56" data-post-id="post1">
+                        <i class="far fa-star"></i> 收藏 <span class="collect-count">56</span>
+                    </div>
+                    <div class="action-btn download-btn" data-count="42" data-post-id="post1">
+                        <i class="fas fa-download"></i> 下载 <span class="download-count">42</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="post" data-post-id="post2">
+                <div class="post-tags">
+                    <span class="post-tag">学术讲座</span>
+                    <span class="post-tag">人工智能</span>
+                    <span class="post-tag">学习</span>
+                </div>
+                <div class="post-header">
+                    <div class="avatar">
+                        <img src="https://via.placeholder.com/40/CCE5FF/FFFFFF?text=学" alt="用户头像">
+                        <div class="follow-btn" data-user="学术先锋">+</div>
+                    </div>
+                    <div class="user-info">
+                        <div class="nickname">学术先锋</div>
+                        <div class="time">2025-11-09 09:15</div>
+                    </div>
+                </div>
+                <div class="post-content">下周有场人工智能的学术讲座，主讲人是行业大牛，推荐大家参加！</div>
+                <div class="post-actions">
+                    <div class="action-btn like-btn" data-count="93" data-post-id="post2">
+                        <i class="far fa-heart"></i> 点赞 <span class="like-count">93</span>
+                    </div>
+                    <div class="action-btn collect-btn" data-count="78" data-post-id="post2">
+                        <i class="far fa-star"></i> 收藏 <span class="collect-count">78</span>
+                    </div>
+                    <div class="action-btn download-btn" data-count="35" data-post-id="post2">
+                        <i class="fas fa-download"></i> 下载 <span class="download-count">35</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="post" data-post-id="post3">
+                <div class="post-tags">
+                    <span class="post-tag">体育</span>
+                    <span class="post-tag">篮球</span>
+                </div>
+                <div class="post-header">
+                    <div class="avatar">
+                        <img src="https://via.placeholder.com/40/E5FFCC/FFFFFF?text=体" alt="用户头像">
+                        <div class="follow-btn" data-user="运动健将">+</div>
+                    </div>
+                    <div class="user-info">
+                        <div class="nickname">运动健将</div>
+                        <div class="time">2025-11-08 16:45</div>
+                    </div>
+                </div>
+                <div class="post-content">校篮球赛决赛将于本周末举行，冠军将代表学校参加省赛，一起为球队加油！</div>
+                <div class="post-actions">
+                    <div class="action-btn like-btn" data-count="156" data-post-id="post3">
+                        <i class="far fa-heart"></i> 点赞 <span class="like-count">156</span>
+                    </div>
+                    <div class="action-btn collect-btn" data-count="43" data-post-id="post3">
+                        <i class="far fa-star"></i> 收藏 <span class="collect-count">43</span>
+                    </div>
+                    <div class="action-btn download-btn" data-count="28" data-post-id="post3">
+                        <i class="fas fa-download"></i> 下载 <span class="download-count">28</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 我的点赞页面 -->
+        <div class="list-page" id="my-like-page">
+            <div class="empty-state" id="my-like-empty">
+                <i class="far fa-heart"></i>
+                <p>暂无点赞内容</p>
+                <small>快去点赞喜欢的新闻吧~</small>
+            </div>
+            <div id="my-like-content"></div>
+        </div>
+
+        <!-- 我的收藏页面 -->
+        <div class="list-page" id="my-collect-page">
+            <div class="empty-state" id="my-collect-empty">
+                <i class="far fa-star"></i>
+                <p>暂无收藏内容</p>
+                <small>收藏喜欢的新闻以便后续查看~</small>
+            </div>
+            <div id="my-collect-content"></div>
+        </div>
+
+        <!-- 我的关注页面 -->
+        <div class="list-page" id="my-follow-page">
+            <div class="empty-state" id="my-follow-empty">
+                <i class="far fa-user-plus"></i>
+                <p>暂无关注用户</p>
+                <small>关注感兴趣的用户获取更多动态~</small>
+            </div>
+            <div id="my-follow-content"></div>
+        </div>
+
+        <!-- 我的发布页面 -->
+        <div class="list-page" id="my-publish-page">
+            <div class="empty-state" id="my-publish-empty">
+                <i class="far fa-paper-plane"></i>
+                <p>暂无发布内容</p>
+                <small>点击底部发布按钮分享你的动态~</small>
+            </div>
+            <div id="my-publish-content"></div>
+        </div>
+
+        <!-- 筛选结果页面 -->
+        <div class="list-page" id="filter-result-page">
+            <div class="empty-state" id="filter-empty">
+                <i class="fas fa-filter"></i>
+                <p>暂无筛选结果</p>
+                <small>尝试其他筛选条件~</small>
+            </div>
+            <div id="filter-result-content"></div>
+        </div>
+
+        <!-- 个人资料页面 -->
+        <div class="common-page profile-page" id="profile-page">
+            <h2 class="page-title"><i class="fas fa-user"></i>账号资料</h2>
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <img src="https://via.placeholder.com/100/FFE5E5/FF6B6B?text=我" alt="个人头像" id="profile-avatar-img">
+                    <div class="avatar-upload">
+                        <label for="avatar-input">更换头像</label>
+                        <input type="file" id="avatar-input" accept="image/*">
+                    </div>
+                </div>
+                <h3 id="profile-nickname-preview">校园用户</h3>
+            </div>
+
+            <form class="profile-form" id="profile-form">
+                <label class="form-label">昵称：</label>
+                <input type="text" class="form-input" id="nickname" placeholder="请输入昵称" required value="校园用户">
+
+                <label class="form-label">性别：</label>
+                <select class="form-select" id="gender" required>
+                    <option value="">请选择</option>
+                    <option value="男" selected>男</option>
+                    <option value="女">女</option>
+                    <option value="保密">保密</option>
+                </select>
+
+                <label class="form-label">出生年月：</label>
+                <input type="date" class="form-input" id="birthdate" required value="2003-09-15">
+
+                <label class="form-label">个性签名：</label>
+                <textarea class="form-textarea" id="signature" placeholder="请输入个性签名（最多100字）" maxlength="100">热爱校园生活，分享精彩瞬间～</textarea>
+
+                <label class="form-label">UID：</label>
+                <input type="text" class="form-input" id="uid" disabled value="USER123456">
+
+                <button type="submit" class="submit-btn">保存资料</button>
+            </form>
+        </div>
+
+        <!-- 安全隐私页面 -->
+        <div class="common-page security-page" id="security-page">
+            <h2 class="page-title"><i class="fas fa-shield-alt"></i>安全隐私</h2>
+            <div class="security-list">
+                <div class="security-item" id="realname-item">
+                    <div class="security-item-content">
+                        <i class="fas fa-id-card"></i>
+                        <div class="security-item-text">
+                            <div class="security-item-title">实名管理</div>
+                            <div class="security-item-desc">完成实名认证，享受更多服务</div>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right arrow-right"></i>
+                </div>
+                <div class="security-item" id="permission-item">
+                    <div class="security-item-content">
+                        <i class="fas fa-key"></i>
+                        <div class="security-item-text">
+                            <div class="security-item-title">授权管理</div>
+                            <div class="security-item-desc">管理应用权限及通知设置</div>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right arrow-right"></i>
+                </div>
+                <div class="security-item" id="privacy-item">
+                    <div class="security-item-content">
+                        <i class="fas fa-lock"></i>
+                        <div class="security-item-text">
+                            <div class="security-item-title">空间隐私设置</div>
+                            <div class="security-item-desc">控制个人动态的公开范围</div>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right arrow-right"></i>
+                </div>
+                <div class="security-item" id="blacklist-item">
+                    <div class="security-item-content">
+                        <i class="fas fa-user-slash"></i>
+                        <div class="security-item-text">
+                            <div class="security-item-title">黑名单管理</div>
+                            <div class="security-item-desc">管理已拉黑的用户</div>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right arrow-right"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- 授权管理页面 -->
+        <div class="common-page permission-page" id="permission-page">
+            <h2 class="page-title"><i class="fas fa-key"></i>授权管理</h2>
+            <div class="setting-list">
+                <div class="setting-list-item">
+                    <span class="setting-list-item-text">消息通知</span>
+                    <label class="switch">
+                        <input type="checkbox" id="notify-switch" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-list-item">
+                    <span class="setting-list-item-text">存储空间权限</span>
+                    <label class="switch">
+                        <input type="checkbox" id="storage-switch" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-list-item">
+                    <span class="setting-list-item-text">Wifi下自动更新</span>
+                    <label class="switch">
+                        <input type="checkbox" id="wifi-update-switch" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-list-item">
+                    <span class="setting-list-item-text">Wifi及移动流量下自动更新</span>
+                    <label class="switch">
+                        <input type="checkbox" id="all-network-update-switch">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- 空间隐私设置页面 -->
+        <div class="common-page privacy-page" id="privacy-page">
+            <h2 class="page-title"><i class="fas fa-lock"></i>空间隐私设置</h2>
+            <div class="setting-list">
+                <div class="setting-list-item">
+                    <span class="setting-list-item-text">公开我的喜欢</span>
+                    <label class="switch">
+                        <input type="checkbox" id="public-like-switch" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-list-item">
+                    <span class="setting-list-item-text">公开我的收藏</span>
+                    <label class="switch">
+                        <input type="checkbox" id="public-collect-switch" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-list-item">
+                    <span class="setting-list-item-text">公开我的关注</span>
+                    <label class="switch">
+                        <input type="checkbox" id="public-follow-switch">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-list-item">
+                    <span class="setting-list-item-text">公开我的下载</span>
+                    <label class="switch">
+                        <input type="checkbox" id="public-download-switch">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- 黑名单管理页面 -->
+        <div class="common-page blacklist-page" id="blacklist-page">
+            <h2 class="page-title"><i class="fas fa-user-slash"></i>黑名单管理</h2>
+            <div class="blacklist-empty">
+                <i class="fas fa-user-slash"></i>
+                <p>暂无拉黑用户</p>
+            </div>
+        </div>
+
+        <!-- 实名管理页面 -->
+        <div class="common-page realname-page" id="realname-page">
+            <h2 class="page-title"><i class="fas fa-id-card"></i>实名管理</h2>
+            <form class="realname-form" id="realname-form">
+                <label class="form-label">姓名：</label>
+                <input type="text" class="form-input" id="realname" placeholder="请输入真实姓名" required>
+
+                <label class="form-label">身份证号：</label>
+                <input type="text" class="form-input" id="id-card" placeholder="请输入18位身份证号" required maxlength="18">
+
+                <button type="submit" class="submit-btn" style="grid-column: 2;">提交认证</button>
+            </form>
+        </div>
+
+        <!-- 标签管理页面 -->
+        <div class="common-page tags-page" id="tags-page">
+            <h2 class="page-title"><i class="fas fa-tags"></i>首页推荐设置</h2>
+            
+            <div class="tags-section">
+                <h3 class="tags-section-title"><i class="fas fa-user-tag"></i>我的标签（拖拽添加）</h3>
+                <div class="tags-container my-tags-container" id="my-tags-container" droppable="true">
+                    <div class="tag-item my-tag" draggable="true" data-tag="校园活动">校园活动</div>
+                    <div class="tag-item my-tag" draggable="true" data-tag="学习">学习</div>
+                    <div class="tag-item my-tag" draggable="true" data-tag="音乐">音乐</div>
+                    <div class="tags-placeholder" id="my-tags-placeholder" style="display: none;">暂无标签，可从下方拖拽添加</div>
+                </div>
+            </div>
+
+            <div class="tags-section">
+                <h3 class="tags-section-title"><i class="fas fa-tags"></i>总标签（拖拽选择）</h3>
+                <div class="tags-container all-tags-container" id="all-tags-container" droppable="true">
+                    <div class="tag-item all-tag" draggable="true" data-tag="体育">体育</div>
+                    <div class="tag-item all-tag" draggable="true" data-tag="篮球">篮球</div>
+                    <div class="tag-item all-tag" draggable="true" data-tag="足球">足球</div>
+                    <div class="tag-item all-tag" draggable="true" data-tag="学术">学术</div>
+                    <div class="tag-item all-tag" draggable="true" data-tag="讲座">讲座</div>
+                    <div class="tag-item all-tag" draggable="true" data-tag="文化">文化</div>
+                    <div class="tag-item all-tag" draggable="true" data-tag="艺术">艺术</div>
+                    <div class="tag-item all-tag" draggable="true" data-tag="通知">通知</div>
+                    <div class="tag-item all-tag" draggable="true" data-tag="公告">公告</div>
+                    <div class="tag-item all-tag" draggable="true" data-tag="招聘">招聘</div>
+                    <div class="tag-item all-tag" draggable="true" data-tag="兼职">兼职</div>
+                    <div class="tag-item all-tag" draggable="true" data-tag="美食">美食</div>
+                    <div class="tag-item all-tag" draggable="true" data-tag="旅行">旅行</div>
+                    <div class="tag-item all-tag" draggable="true" data-tag="科技">科技</div>
+                    <div class="tag-item all-tag" draggable="true" data-tag="电影">电影</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 下载管理页面 -->
+        <div class="common-page download-page" id="download-page">
+            <h2 class="page-title"><i class="fas fa-download"></i>下载管理</h2>
+            <div class="empty-state" id="download-empty">
+                <i class="fas fa-file-download"></i>
+                <p>暂无下载内容</p>
+                <small>下载感兴趣的新闻离线查看~</small>
+            </div>
+            <div id="download-content"></div>
+        </div>
+    </div>
+
+    <!-- 底部导航 -->
+    <div class="footer">
+        <div class="footer-btn" id="news-btn">
+            <i class="fas fa-th-large"></i>
+            <span>头条圈子</span>
+        </div>
+        <div class="publish-btn" id="publish-btn">
+            <i class="fas fa-plus"></i>
+        </div>
+        <div class="footer-btn" id="setting-btn">
+            <i class="fas fa-cog"></i>
+            <span>设置</span>
+        </div>
+    </div>
+
+    <!-- 返回按钮（固定左下角，始终可见） -->
+    <div class="back-button" id="back-button">
+        <i class="fas fa-arrow-left"></i>
+    </div>
+
+    <!-- 设置弹出框（含登出按钮） -->
+    <div class="setting-popup" id="setting-popup">
+        <div class="setting-item" id="profile-item">
+            <i class="fas fa-user"></i>
+            <span>账号资料</span>
+        </div>
+        <div class="setting-item" id="security-main-item">
+            <i class="fas fa-shield-alt"></i>
+            <span>安全隐私</span>
+        </div>
+        <div class="setting-item" id="tags-main-item">
+            <i class="fas fa-thumbs-up"></i>
+            <span>首页推荐设置</span>
+        </div>
+        <div class="setting-item" id="download-main-item">
+            <i class="fas fa-download"></i>
+            <span>下载管理</span>
+        </div>
+        <div class="setting-item logout-item" id="logout-item">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>登出账号</span>
+        </div>
+    </div>
+
+    <!-- 提示消息 -->
+    <div class="toast" id="toast">操作成功</div>
+
+    <script>
+        // DOM元素获取（确保所有元素都能正确获取）
+        const newsList = document.getElementById('news-list');
+        const myLikePage = document.getElementById('my-like-page');
+        const myCollectPage = document.getElementById('my-collect-page');
+        const myFollowPage = document.getElementById('my-follow-page');
+        const myPublishPage = document.getElementById('my-publish-page');
+        const filterResultPage = document.getElementById('filter-result-page');
+        const profilePage = document.getElementById('profile-page');
+        const securityPage = document.getElementById('security-page');
+        const permissionPage = document.getElementById('permission-page');
+        const privacyPage = document.getElementById('privacy-page');
+        const blacklistPage = document.getElementById('blacklist-page');
+        const realnamePage = document.getElementById('realname-page');
+        const tagsPage = document.getElementById('tags-page');
+        const downloadPage = document.getElementById('download-page');
+        
+        const settingBtn = document.getElementById('setting-btn');
+        const settingPopup = document.getElementById('setting-popup');
+        const profileItem = document.getElementById('profile-item');
+        const securityMainItem = document.getElementById('security-main-item');
+        const tagsMainItem = document.getElementById('tags-main-item');
+        const downloadMainItem = document.getElementById('download-main-item');
+        const logoutItem = document.getElementById('logout-item');
+        const newsBtn = document.getElementById('news-btn');
+        const publishBtn = document.getElementById('publish-btn');
+        const profileForm = document.getElementById('profile-form');
+        const avatarInput = document.getElementById('avatar-input');
+        const profileAvatarImg = document.getElementById('profile-avatar-img');
+        const profileNicknamePreview = document.getElementById('profile-nickname-preview');
+        const toast = document.getElementById('toast');
+        const backButton = document.getElementById('back-button');
+        
+        // 导航和筛选元素
+        const homeNav = document.getElementById('home-nav');
+        const myLikeNav = document.getElementById('my-like-nav');
+        const myCollectNav = document.getElementById('my-collect-nav');
+        const myFollowNav = document.getElementById('my-follow-nav');
+        const myPublishNav = document.getElementById('my-publish-nav');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const filterTime = document.getElementById('filter-time');
+        const filterPopularity = document.getElementById('filter-popularity');
+        const filterLike = document.getElementById('filter-like');
+        const filterCollect = document.getElementById('filter-collect');
+        const filterDownload = document.getElementById('filter-download');
+        
+        // 内容容器
+        const myLikeContent = document.getElementById('my-like-content');
+        const myCollectContent = document.getElementById('my-collect-content');
+        const myFollowContent = document.getElementById('my-follow-content');
+        const myPublishContent = document.getElementById('my-publish-content');
+        const filterResultContent = document.getElementById('filter-result-content');
+        const downloadContent = document.getElementById('download-content');
+        
+        // 空状态元素
+        const myLikeEmpty = document.getElementById('my-like-empty');
+        const myCollectEmpty = document.getElementById('my-collect-empty');
+        const myFollowEmpty = document.getElementById('my-follow-empty');
+        const myPublishEmpty = document.getElementById('my-publish-empty');
+        const filterEmpty = document.getElementById('filter-empty');
+        const downloadEmpty = document.getElementById('download-empty');
+        
+        // 安全隐私相关元素
+        const realnameItem = document.getElementById('realname-item');
+        const permissionItem = document.getElementById('permission-item');
+        const privacyItem = document.getElementById('privacy-item');
+        const blacklistItem = document.getElementById('blacklist-item');
+        const realnameForm = document.getElementById('realname-form');
+
+        // 标签管理相关元素
+        const myTagsContainer = document.getElementById('my-tags-container');
+        const allTagsContainer = document.getElementById('all-tags-container');
+        const myTagsPlaceholder = document.getElementById('my-tags-placeholder');
+
+        // 所有页面数组
+        const allPages = [
+            newsList, myLikePage, myCollectPage, myFollowPage, myPublishPage, filterResultPage,
+            profilePage, securityPage, permissionPage, privacyPage, blacklistPage, realnamePage,
+            tagsPage, downloadPage
+        ];
+
+        // 页面导航历史栈
+        const pageHistory = [];
+        // 初始页面
+        const initialPage = newsList;
+
+        // 模拟数据存储
+        const userData = {
+            likedPosts: [],
+            collectedPosts: [],
+            followedUsers: [],
+            publishedPosts: [],
+            downloadedPosts: []
+        };
+
+        // 页面加载完成初始化（确保所有初始化逻辑执行）
+        window.onload = () => {
+            console.log('页面加载完成，开始初始化');
+            initUserProfile();
+            initSwitchStates();
+            initPageHistory();
+            bindAllEvents();
+            initTagDragAndDrop();
+            checkMyTagsPlaceholder();
+            initListPages();
+            console.log('初始化完成');
+        };
+
+        // 初始化页面历史栈
+        function initPageHistory() {
+            pageHistory.length = 0;
+            pageHistory.push(initialPage);
+            showPage(initialPage, false);
+            console.log('初始页面设置完成：', initialPage.id);
+        }
+
+        // 页面切换函数（核心函数，确保所有页面能正确显示）
+        function showPage(targetPage, addToHistory = true) {
+            try {
+                // 隐藏所有页面
+                allPages.forEach(page => {
+                    page.style.display = 'none';
+                });
+                // 显示目标页面
+                targetPage.style.display = 'block';
+                // 关闭设置弹出框
+                settingPopup.classList.remove('show');
+                
+                // 添加到历史栈
+                if (addToHistory && pageHistory[pageHistory.length - 1] !== targetPage) {
+                    pageHistory.push(targetPage);
+                }
+                
+                // 更新导航和筛选状态
+                updateNavAndFilterStates(targetPage);
+                console.log('页面切换成功：', targetPage.id);
+            } catch (e) {
+                console.error('页面切换失败：', e);
+            }
+        }
+
+        // 绑定所有事件（集中管理，确保不遗漏）
+        function bindAllEvents() {
+            console.log('开始绑定所有事件');
+            bindBackButtonEvent();
+            bindNavEvents();
+            bindFilterEvents();
+            bindPublishEvent();
+            bindSettingPopupEvents();
+            bindContentActionEvents();
+            bindSecurityEvents();
+            bindProfileFormEvents();
+            bindRealnameFormEvents();
+            bindDownloadEvents();
+            bindLogoutEvent();
+            console.log('所有事件绑定完成');
+        }
+
+        // 绑定返回按钮事件（始终可用）
+        function bindBackButtonEvent() {
+            backButton.addEventListener('click', () => {
+                if (pageHistory.length > 1) {
+                    pageHistory.pop();
+                    const prevPage = pageHistory[pageHistory.length - 1];
+                    showPage(prevPage, false);
+                    showToast('返回上一页');
+                } else {
+                    showToast('已经是首页了');
+                }
+            });
+        }
+
+        // 绑定导航事件（重点修复：确保所有导航按钮能跳转）
+        function bindNavEvents() {
+            // 首页
+            homeNav.addEventListener('click', () => {
+                console.log('点击首页');
+                showPage(newsList);
+            });
+            
+            // 我的点赞
+            myLikeNav.addEventListener('click', () => {
+                console.log('点击我的点赞');
+                renderMyLikeList();
+                showPage(myLikePage);
+            });
+            
+            // 我的收藏
+            myCollectNav.addEventListener('click', () => {
+                console.log('点击我的收藏');
+                renderMyCollectList();
+                showPage(myCollectPage);
+            });
+            
+            // 我的关注
+            myFollowNav.addEventListener('click', () => {
+                console.log('点击我的关注');
+                renderMyFollowList();
+                showPage(myFollowPage);
+            });
+            
+            // 我的发布
+            myPublishNav.addEventListener('click', () => {
+                console.log('点击我的发布');
+                renderMyPublishList();
+                showPage(myPublishPage);
+            });
+            
+            // 底部头条圈子
+            newsBtn.addEventListener('click', () => {
+                console.log('点击底部头条圈子');
+                showPage(newsList);
+                pageHistory.length = 0;
+                pageHistory.push(newsList);
+            });
+        }
+
+        // 绑定筛选事件（修复筛选框点击无反应问题）
+        function bindFilterEvents() {
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    console.log('点击筛选按钮：', btn.id);
+                    // 更新筛选按钮激活状态
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    // 渲染筛选结果
+                    const filterType = btn.id;
+                    renderFilterResult(filterType);
+                    showPage(filterResultPage);
+                });
+            });
+        }
+
+        // 绑定发布按钮事件
+        function bindPublishEvent() {
+            publishBtn.addEventListener('click', () => {
+                console.log('点击发布按钮');
+                showToast('发布功能开发中');
+            });
+        }
+
+        // 绑定设置弹出框事件（确保设置项能跳转）
+        function bindSettingPopupEvents() {
+            // 打开/关闭设置弹出框
+            settingBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                console.log('点击设置按钮');
+                settingPopup.classList.toggle('show');
+            });
+            
+            settingPopup.addEventListener('click', (e) => e.stopPropagation());
+            document.addEventListener('click', () => settingPopup.classList.remove('show'));
+            
+            // 账号资料
+            profileItem.addEventListener('click', () => {
+                console.log('点击账号资料');
+                showPage(profilePage);
+            });
+            
+            // 安全隐私
+            securityMainItem.addEventListener('click', () => {
+                console.log('点击安全隐私');
+                showPage(securityPage);
+            });
+            
+            // 首页推荐设置
+            tagsMainItem.addEventListener('click', () => {
+                console.log('点击首页推荐设置');
+                showPage(tagsPage);
+            });
+            
+            // 下载管理
+            downloadMainItem.addEventListener('click', () => {
+                console.log('点击下载管理');
+                renderDownloadList();
+                showPage(downloadPage);
+            });
+        }
+
+        // 绑定内容操作事件（点赞、收藏、关注、下载）
+        function bindContentActionEvents() {
+            // 点赞
+            document.querySelectorAll('.like-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const postId = this.getAttribute('data-post-id');
+                    const postElement = document.querySelector(`.post[data-post-id="${postId}"]`);
+                    const countEl = this.querySelector('.like-count');
+                    let currentCount = parseInt(countEl.textContent);
+                    
+                    if (this.classList.contains('active')) {
+                        this.classList.remove('active');
+                        currentCount--;
+                        userData.likedPosts = userData.likedPosts.filter(p => p.id !== postId);
+                        showToast('取消点赞');
+                    } else {
+                        this.classList.add('active');
+                        currentCount++;
+                        const postData = getPostDataFromElement(postElement);
+                        userData.likedPosts.push({ id: postId, ...postData });
+                        showToast('点赞成功');
+                    }
+                    
+                    countEl.textContent = currentCount;
+                    this.setAttribute('data-count', currentCount);
+                    
+                    if (pageHistory.includes(myLikePage)) renderMyLikeList();
+                });
+            });
+            
+            // 收藏
+            document.querySelectorAll('.collect-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const postId = this.getAttribute('data-post-id');
+                    const postElement = document.querySelector(`.post[data-post-id="${postId}"]`);
+                    const countEl = this.querySelector('.collect-count');
+                    let currentCount = parseInt(countEl.textContent);
+                    
+                    if (this.classList.contains('active')) {
+                        this.classList.remove('active');
+                        currentCount--;
+                        userData.collectedPosts = userData.collectedPosts.filter(p => p.id !== postId);
+                        showToast('取消收藏');
+                    } else {
+                        this.classList.add('active');
+                        currentCount++;
+                        const postData = getPostDataFromElement(postElement);
+                        userData.collectedPosts.push({ id: postId, ...postData });
+                        showToast('收藏成功');
+                    }
+                    
+                    countEl.textContent = currentCount;
+                    this.setAttribute('data-count', currentCount);
+                    
+                    if (pageHistory.includes(myCollectPage)) renderMyCollectList();
+                });
+            });
+            
+            // 关注
+            document.querySelectorAll('.follow-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const username = this.getAttribute('data-user');
+                    const avatar = this.closest('.avatar').querySelector('img').src;
+                    
+                    if (this.textContent === '+') {
+                        this.textContent = '√';
+                        this.style.backgroundColor = '#ff6b6b';
+                        userData.followedUsers.push({ nickname: username, avatar: avatar });
+                        showToast(`关注 ${username} 成功`);
+                    } else {
+                        this.textContent = '+';
+                        this.style.backgroundColor = '#4ecdc4';
+                        userData.followedUsers = userData.followedUsers.filter(u => u.nickname !== username);
+                        showToast(`取消关注 ${username}`);
+                    }
+                    
+                    if (pageHistory.includes(myFollowPage)) renderMyFollowList();
+                });
+            });
+            
+            // 下载
+            document.querySelectorAll('.download-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const postId = this.getAttribute('data-post-id');
+                    const postElement = document.querySelector(`.post[data-post-id="${postId}"]`);
+                    const countEl = this.querySelector('.download-count');
+                    let currentCount = parseInt(countEl.textContent);
+                    
+                    const isDownloaded = userData.downloadedPosts.some(p => p.id === postId);
+                    if (isDownloaded) {
+                        showToast('已下载该内容');
+                        return;
+                    }
+                    
+                    currentCount++;
+                    countEl.textContent = currentCount;
+                    this.setAttribute('data-count', currentCount);
+                    
+                    const postData = getPostDataFromElement(postElement);
+                    userData.downloadedPosts.push({ id: postId, ...postData });
+                    
+                    showToast('下载成功');
+                    
+                    if (pageHistory.includes(downloadPage)) renderDownloadList();
+                });
+            });
+        }
+
+        // 绑定安全隐私相关事件
+        function bindSecurityEvents() {
+            realnameItem.addEventListener('click', () => {
+                console.log('点击实名管理');
+                showPage(realnamePage);
+            });
+            permissionItem.addEventListener('click', () => {
+                console.log('点击授权管理');
+                showPage(permissionPage);
+            });
+            privacyItem.addEventListener('click', () => {
+                console.log('点击空间隐私设置');
+                showPage(privacyPage);
+            });
+            blacklistItem.addEventListener('click', () => {
+                console.log('点击黑名单管理');
+                showPage(blacklistPage);
+            });
+        }
+
+        // 绑定个人资料表单事件
+        function bindProfileFormEvents() {
+            profileForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const userData = {
+                    nickname: document.getElementById('nickname').value,
+                    gender: document.getElementById('gender').value,
+                    birthdate: document.getElementById('birthdate').value,
+                    signature: document.getElementById('signature').value,
+                    uid: document.getElementById('uid').value,
+                    avatar: profileAvatarImg.src
+                };
+                localStorage.setItem('userProfile', JSON.stringify(userData));
+                profileNicknamePreview.textContent = userData.nickname;
+                showToast('资料保存成功');
+            });
+            
+            // 头像上传预览
+            avatarInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        profileAvatarImg.src = event.target.result;
+                        const savedProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                        savedProfile.avatar = event.target.result;
+                        localStorage.setItem('userProfile', JSON.stringify(savedProfile));
+                        showToast('头像预览成功');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        // 绑定实名认证表单事件
+        function bindRealnameFormEvents() {
+            realnameForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const realname = document.getElementById('realname').value;
+                const idCard = document.getElementById('id-card').value;
+                
+                if (!realname || !idCard) {
+                    showToast('请填写完整信息');
+                    return;
+                }
+                
+                if (idCard.length !== 18) {
+                    showToast('身份证号格式不正确');
+                    return;
+                }
+                
+                localStorage.setItem('realnameInfo', JSON.stringify({
+                    realname, idCard, verified: true
+                }));
+                
+                showToast('实名认证提交成功，等待审核');
+                goBackToPrevPage();
+            });
+        }
+
+        // 绑定下载管理事件（删除下载内容）
+        function bindDownloadEvents() {
+            downloadContent.addEventListener('click', (e) => {
+                if (e.target.closest('.delete-btn')) {
+                    const btn = e.target.closest('.delete-btn');
+                    const postId = btn.getAttribute('data-post-id');
+                    
+                    userData.downloadedPosts = userData.downloadedPosts.filter(p => p.id !== postId);
+                    renderDownloadList();
+                    showToast('删除成功');
+                }
+            });
+        }
+
+        // 绑定登出事件
+        function bindLogoutEvent() {
+            logoutItem.addEventListener('click', () => {
+                if (confirm('确定要登出账号吗？')) {
+                    localStorage.clear();
+                    userData.likedPosts = [];
+                    userData.collectedPosts = [];
+                    userData.followedUsers = [];
+                    userData.publishedPosts = [];
+                    userData.downloadedPosts = [];
+                    
+                    initPageHistory();
+                    initUserProfile();
+                    initSwitchStates();
+                    initListPages();
+                    
+                    settingPopup.classList.remove('show');
+                    showToast('登出成功');
+                }
+            });
+        }
+
+        // 更新导航和筛选按钮状态
+        function updateNavAndFilterStates(currentPage) {
+            // 重置所有导航按钮状态
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            // 重置所有筛选按钮状态
+            filterBtns.forEach(btn => btn.classList.remove('active'));
+            
+            // 根据当前页面设置激活状态
+            if (currentPage === newsList) {
+                homeNav.classList.add('active');
+                filterTime.classList.add('active');
+            } else if (currentPage === myLikePage) {
+                myLikeNav.classList.add('active');
+            } else if (currentPage === myCollectPage) {
+                myCollectNav.classList.add('active');
+            } else if (currentPage === myFollowPage) {
+                myFollowNav.classList.add('active');
+            } else if (currentPage === myPublishPage) {
+                myPublishNav.classList.add('active');
+            } else if (currentPage === filterResultPage) {
+                homeNav.classList.add('active');
+            }
+        }
+
+        // 从DOM元素获取帖子数据
+        function getPostDataFromElement(element) {
+            const avatar = element.querySelector('.avatar img').src;
+            const nickname = element.querySelector('.nickname').textContent;
+            const time = element.querySelector('.time').textContent;
+            const content = element.querySelector('.post-content').textContent;
+            const tags = Array.from(element.querySelectorAll('.post-tag')).map(tag => tag.textContent);
+            
+            return { avatar, nickname, time, content, tags };
+        }
+
+        // 渲染我的点赞列表
+        function renderMyLikeList() {
+            if (userData.likedPosts.length === 0) {
+                myLikeContent.style.display = 'none';
+                myLikeEmpty.style.display = 'block';
+                return;
+            }
+            
+            myLikeContent.style.display = 'block';
+            myLikeEmpty.style.display = 'none';
+            myLikeContent.innerHTML = '';
+            
+            userData.likedPosts.forEach(post => {
+                myLikeContent.innerHTML += createPostHTML(post);
+            });
+        }
+
+        // 渲染我的收藏列表
+        function renderMyCollectList() {
+            if (userData.collectedPosts.length === 0) {
+                myCollectContent.style.display = 'none';
+                myCollectEmpty.style.display = 'block';
+                return;
+            }
+            
+            myCollectContent.style.display = 'block';
+            myCollectEmpty.style.display = 'none';
+            myCollectContent.innerHTML = '';
+            
+            userData.collectedPosts.forEach(post => {
+                myCollectContent.innerHTML += createPostHTML(post);
+            });
+        }
+
+        // 渲染我的关注列表
+        function renderMyFollowList() {
+            if (userData.followedUsers.length === 0) {
+                myFollowContent.style.display = 'none';
+                myFollowEmpty.style.display = 'block';
+                return;
+            }
+            
+            myFollowContent.style.display = 'block';
+            myFollowEmpty.style.display = 'none';
+            myFollowContent.innerHTML = '';
+            
+            userData.followedUsers.forEach(user => {
+                myFollowContent.innerHTML += `
+                    <div class="post">
+                        <div class="post-header">
+                            <div class="avatar">
+                                <img src="${user.avatar}" alt="${user.nickname}">
+                                <div class="follow-btn" style="background-color: #ff6b6b; text-align: center;">√</div>
+                            </div>
+                            <div class="user-info">
+                                <div class="nickname">${user.nickname}</div>
+                                <div class="time">已关注</div>
+                            </div>
+                        </div>
+                        <div class="post-content">点击查看该用户更多动态</div>
+                        <div class="post-actions">
+                            <div class="action-btn" style="cursor: pointer;" onclick="showToast('查看动态功能开发中')">
+                                <i class="fas fa-eye"></i> 查看动态
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // 渲染我的发布列表
+        function renderMyPublishList() {
+            if (userData.publishedPosts.length === 0) {
+                myPublishContent.style.display = 'none';
+                myPublishEmpty.style.display = 'block';
+                return;
+            }
+            
+            myPublishContent.style.display = 'block';
+            myPublishEmpty.style.display = 'none';
+            myPublishContent.innerHTML = '';
+            
+            userData.publishedPosts.forEach(post => {
+                myPublishContent.innerHTML += createPostHTML(post, true);
+            });
+        }
+
+        // 渲染筛选结果列表（修复筛选无反应问题）
+        function renderFilterResult(filterType) {
+            console.log('开始渲染筛选结果，筛选类型：', filterType);
+            const allPosts = Array.from(document.querySelectorAll('.post')).map(post => {
+                const postId = post.getAttribute('data-post-id');
+                const postData = getPostDataFromElement(post);
+                const likeCount = parseInt(post.querySelector('.like-count').textContent);
+                const collectCount = parseInt(post.querySelector('.collect-count').textContent);
+                const downloadCount = parseInt(post.querySelector('.download-count').textContent);
+                
+                return {
+                    id: postId,
+                    ...postData,
+                    likeCount,
+                    collectCount,
+                    downloadCount,
+                    time: new Date(postData.time)
+                };
+            });
+            
+            let sortedPosts = [...allPosts];
+            
+            // 根据筛选类型排序（前端模拟）
+            switch(filterType) {
+                case 'filter-time':
+                    sortedPosts.sort((a, b) => b.time - a.time);
+                    break;
+                case 'filter-popularity':
+                    sortedPosts.sort((a, b) => (b.likeCount + b.collectCount + b.downloadCount) - (a.likeCount + a.collectCount + a.downloadCount));
+                    break;
+                case 'filter-like':
+                    sortedPosts.sort((a, b) => b.likeCount - a.likeCount);
+                    break;
+                case 'filter-collect':
+                    sortedPosts.sort((a, b) => b.collectCount - a.collectCount);
+                    break;
+                case 'filter-download':
+                    sortedPosts.sort((a, b) => b.downloadCount - a.downloadCount);
+                    break;
+            }
+            
+            if (sortedPosts.length === 0) {
+                filterResultContent.style.display = 'none';
+                filterEmpty.style.display = 'block';
+                return;
+            }
+            
+            filterResultContent.style.display = 'block';
+            filterEmpty.style.display = 'none';
+            filterResultContent.innerHTML = '';
+            
+            sortedPosts.forEach(post => {
+                filterResultContent.innerHTML += createPostHTML(post);
+            });
+            console.log('筛选结果渲染完成，共', sortedPosts.length, '条');
+        }
+
+        // 渲染下载管理列表
+        function renderDownloadList() {
+            if (userData.downloadedPosts.length === 0) {
+                downloadContent.style.display = 'none';
+                download

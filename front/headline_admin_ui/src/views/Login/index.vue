@@ -39,10 +39,14 @@
       </div>
     </div>
   </AuroraBackground>
+  <div class="login-footer">
+    <div>{{ siteConfig?.teamName }}</div>
+    <div>{{ siteConfig?.copyright }}</div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { reactive, ref, inject } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import AuroraBackground from '@/components/AuroraBackground.vue'
@@ -59,6 +63,15 @@ const form = reactive({
   password: '',
   remember: false,
 })
+
+// 全局信息
+const siteConfig = inject('siteConfig', {
+  teamName: '默认团队',
+  copyright: 'Copyright © 默认',
+}) as {
+  teamName: string
+  copyright: string
+}
 
 // 基本校验规则
 const rules = {
@@ -103,7 +116,6 @@ const onSubmit = async () => {
 
     const roleNumber = typeof loginInfo.role === 'string' ? Number(loginInfo.role) : loginInfo.role
 
-    // loginInfo 中应包含 role（0 管理员 / 1 员工）
     localStorage.setItem('auth_token', loginInfo.token)
     localStorage.setItem(
       'login_user',
@@ -188,13 +200,33 @@ const onSubmit = async () => {
 
 /* Rainbow 按钮外层居中且铺满 */
 
-/* 保证按钮有合理宽度 */
-.btn-wrap ::v-deep button,
-.btn-wrap ::v-deep .rainbow-button {
+.btn-wrap {
+  display: flex;
+  justify-content: center; /* 水平居中 */
+}
+
+/* 控制彩虹按钮本身的最小宽度和圆角 */
+.btn-wrap :deep(.rainbow-button) {
   min-width: 220px;
   border-radius: 8px;
-  display: block;
 }
+:deep(.el-form-item__content) {
+  justify-content: center;
+}
+
+/* 底部信息样式 */
+.login-footer {
+  margin-top: 16px;
+  font-size: 12px;
+  color: #999;
+  text-align: center;
+  pointer-events: auto;
+}
+
+.login-footer > div + div {
+  margin-top: 2px;
+}
+
 /* 窗口窄时折叠布局：隐藏背景交互，表单仍居中 */
 @media (max-width: 1000px) {
   .bg-wrapper {

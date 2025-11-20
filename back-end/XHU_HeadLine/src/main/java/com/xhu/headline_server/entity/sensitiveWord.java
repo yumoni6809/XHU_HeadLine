@@ -1,6 +1,6 @@
 package com.xhu.headline_server.entity;
 
-// 新闻类别类
+// 敏感词类
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,8 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class news_category {
-   private long id;
-    private String name;
-
+public class sensitiveWord {
+    private int id;
+    private String word;
 }
