@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xhu.headline_server.mapper.NewsPortMapper">
+
+    <!-- Result map for news_post table -->
+    <resultMap id="NewsPostResultMap" type="com.xhu.headline_server.entity.newsPort">
+        <id     column="id"            property="id"/>
+        <result column="author_id"     property="authorId"/>
+        <result column="category_id"   property="categoryId"/>
+        <result column="title"         property="title"/>
+        <result column="content"       property="content"/>
+        <result column="cover_images"  property="coverImages"/>
+        <result column="status"        property="status"/>
+        <result column="view_count"    property="viewCount"/>
+        <result column="like_count"    property="likeCount"/>
+        <result column="comment_count" property="commentCount"/>
+        <result column="source"        property="source"/>
+        <result column="create_time"   property="createTime"/>
+        <result column="update_time"   property="updateTime"/>
+        <result column="deleted"       property="deleted"/>
+    </resultMap>
+
+    <!-- Get news post by ID -->
+    <select id="getNewsPortById" parameterType="long" resultMap="NewsPostResultMap">
+        SELECT
+            id, author_id, category_id, title, content, cover_images,
+            status, view_count, like_count, comment_count, source,
+            create_time, update_time, deleted
+        FROM news_post
+        WHERE id = #{id}
+          AND deleted = 0
+    </select>
+
+    <!-- Insert new news post -->
+    <insert id="addNewsPort"
+            parameterType="com.xhu.headline_server.entity.newsPort"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO news_post (
+            author_id, category_id, title, content, cover_images,
+            status, view_count, like_count, comment_count,
+            source, create_time, update_time, deleted
+        ) VALUES (
+            #{authorId}, #{categoryId}, #{title}, #{content}, #{coverImages},
+            #{status}, #{viewCount}, #{likeCount}, #{commentCount},
+            #{source}, NOW(), NOW(), COALESCE(#{deleted}, 0)
+        )
+    </insert>
+
+    <!-- Update existing news post -->
+    <update id="updateNewsPort"
+            parameterType="com.xhu.headline_server.entity.newsPort">
+        UPDATE news_post
+        SET
+            author_id     = #{authorId},
+            category_id   = #{categoryId},
+            title         = #{title},
+            content       = #{content},
+            cover_images  = #{coverImages},
+            status        = #{status},
+            view_count    = #{viewCount},
+            like_count    = #{likeCount},
+            comment_count = #{commentCount},
+            source        = #{source},
+            update_time   = NOW()
+        WHERE id = #{id}
+          AND deleted = 0
+    </update>
+
+    <!-- Delete news post by ID (logical deletion) -->
+    <update id="deleteNewsPortById" parameterType="long">
+        UPDATE news_post
+        SET deleted = 1, update_time = NOW()
+        WHERE id = #{id}
+    </update>
+</mapper>
