@@ -11,7 +11,7 @@ import {
   type RouteLocationAsRelativeGeneric,
 } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Menu as IconMenu } from '@element-plus/icons-vue'
+import { Avatar, Document } from '@element-plus/icons-vue'
 
 // 登录用户信息结构
 interface LoginUser {
@@ -86,13 +86,13 @@ const logout = () => {
       <el-scrollbar>
         <el-menu :default-active="active" @select="go" class="el-menu-vertical-demo">
           <el-menu-item index="/user">
-            <el-icon><IconMenu /></el-icon>
+            <el-icon><Avatar /></el-icon>
             <span>用户管理</span>
           </el-menu-item>
         </el-menu>
         <el-menu :default-active="active" @select="go" class="el-menu-vertical-demo">
           <el-menu-item index="/port">
-            <el-icon><IconMenu /></el-icon>
+            <el-icon><Document /></el-icon>
             <span>文章管理</span>
           </el-menu-item>
         </el-menu>

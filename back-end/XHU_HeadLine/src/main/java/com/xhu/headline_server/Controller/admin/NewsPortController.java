@@ -2,6 +2,7 @@ package com.xhu.headline_server.Controller.admin;
 
 import com.xhu.headline_server.entity.newsPort;
 import com.xhu.headline_server.service.NewPortService;
+import com.xhu.headline_server.utils.util1;
 import org.mybatis.logging.Logger;
 import org.mybatis.logging.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,10 +12,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/admin/newsport")
+@RequestMapping("/admin/port")
 public class NewsPortController {
 
     @Autowired
@@ -65,6 +67,49 @@ public class NewsPortController {
         }
         return res;
     }
+
+    // 查列表
+    // 请求体示例
+    // params: { pageNum, pageSize, title, authorId, categoryId, status }
+    @PostMapping("/list")
+    public Map<String, Object> listNewsPorts(@RequestBody Map<String, Object> params) {
+        Map<String, Object> res = new HashMap<>();
+
+        String title = params.get("title") != null ? params.get("title").toString() : null;
+        String authorId = params.get("authorId") != null ? params.get("authorId").toString() : null;
+        String categoryId = params.get("categoryId") != null ? params.get("categoryId").toString() : null;
+        String status = params.get("status") != null ? params.get("status").toString() : null;
+
+        int page = params.get("pageNum") != null
+                ? Integer.parseInt(params.get("pageNum").toString())
+                : 1;
+        int size = params.get("pageSize") != null
+                ? Integer.parseInt(params.get("pageSize").toString())
+                : 10;
+
+        List<newsPort> allNews = newPortService.getAllNewsPorts();
+
+        Map<String, String> contains = new HashMap<>();
+        contains.put("title", title);
+
+        Map<String, String> equals = new HashMap<>();
+        if (authorId != null && !authorId.isEmpty()) {
+            equals.put("authorId", authorId);
+        }
+        if (categoryId != null && !categoryId.isEmpty()) {
+            equals.put("categoryId", categoryId);
+        }
+        if (status != null && !status.isEmpty()) {
+            equals.put("status", status);
+        }
+
+        Map<String, Object> data = util1.filterAndPage(allNews, contains, equals, page, size);
+        res.put("code", 1);
+        res.put("data", data);
+
+        return res;
+    }
+
 
     // 改
     @PostMapping("/update")

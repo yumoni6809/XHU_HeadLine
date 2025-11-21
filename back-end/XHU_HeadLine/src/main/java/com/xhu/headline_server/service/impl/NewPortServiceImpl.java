@@ -6,6 +6,8 @@ import com.xhu.headline_server.service.NewPortService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class NewPortServiceImpl implements NewPortService {
 
@@ -51,5 +53,11 @@ public class NewPortServiceImpl implements NewPortService {
         }
         int affected = newsPortMapper.deleteById(id);
         return affected > 0;
+    }
+
+    @Override
+    public List<newsPort> getAllNewsPorts() {
+        List<newsPort> ports = newsPortMapper.listAll();
+        return ports;
     }
 }

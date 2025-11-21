@@ -177,6 +177,8 @@ public class UserController {
             log.error("uploadImage error", e);
             res.put("code", 0);
             res.put("message", "图片上传失败");
+
+
         }
         return res;
     }

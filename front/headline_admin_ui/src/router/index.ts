@@ -3,6 +3,7 @@ import Layout from '@/views/layout/index.vue'
 import LoginView from '@/views/Login/index.vue'
 import UserView from '@/views/user/index.vue'
 import PortView from '@/port/index.vue'
+import PortEditor from '@/port/editor.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -27,6 +28,11 @@ const routes: Array<RouteRecordRaw> = [
         path: '/port',
         name: 'Port',
         component: PortView,
+      },
+      {
+        path: '/port/editor/:id?',
+        name: 'PortEditor',
+        component: PortEditor,
       },
     ],
   },

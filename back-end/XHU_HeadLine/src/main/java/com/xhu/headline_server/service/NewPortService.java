@@ -2,6 +2,8 @@ package com.xhu.headline_server.service;
 
 import com.xhu.headline_server.entity.newsPort;
 
+import java.util.List;
+
 public interface NewPortService {
 
     /**
@@ -20,4 +22,9 @@ public interface NewPortService {
      * 根据 id 删除新闻
      */
     boolean deleteNewsPortById(Long id);
+
+    /**
+     * 获取所有新闻
+     */
+    List<newsPort> getAllNewsPorts();
 }

@@ -4,7 +4,13 @@ export default { name: 'UserView' }
 
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
-import { EditPen, Delete } from '@element-plus/icons-vue'
+import {
+  EditPen,
+  Delete,
+  CirclePlusFilled,
+  Search,
+  CircleCloseFilled,
+} from '@element-plus/icons-vue'
 import { queryPageApi, deleteUserApi, addUserApi, updateUserApi } from '@/api/user'
 import { curd } from '@/api/curd'
 // 初始用户对象
@@ -185,11 +191,15 @@ const uploadError = () => {
       </el-form-item>
 
       <el-form-item>
-        <el-button v-if="props.isAdmin" type="success" @click="addUser"
-          ><el-icon><EditPen /></el-icon> 添加</el-button
+        <el-button v-if="props.isAdmin" type="success" @click="addUser">
+          <el-icon><CirclePlusFilled /></el-icon> 新增</el-button
         >
-        <el-button type="primary" @click="search">查询</el-button>
-        <el-button @click="clear">清空</el-button>
+        <el-button type="primary" @click="search"
+          ><el-icon><Search /></el-icon> 查询</el-button
+        >
+        <el-button @click="clear"
+          ><el-icon><CircleCloseFilled /></el-icon> 清空</el-button
+        >
       </el-form-item>
     </el-form>
   </div>
