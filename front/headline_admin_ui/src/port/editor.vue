@@ -12,7 +12,7 @@ const router = useRouter()
 const idParam = route.params.id
 const editingId = idParam ? Number(idParam) : null
 
-// 表单：除了 content，其它字段在这里管理
+// 表单
 const form = ref({
   id: editingId as number | null,
   title: '',
@@ -29,7 +29,6 @@ onMounted(async () => {
   cherryInstance = new Cherry({
     id: 'markdown-container',
     value: '',
-    // 这里可以根据你之前的配置补充工具栏、主题等
   })
 
   // 有 id：编辑模式 -> 加载文章详情
@@ -73,7 +72,7 @@ const save = async () => {
     return
   }
 
-  // 类型清洗：把字符串数字转成真正的数字
+  // 类型清洗
   if (payload.authorId === '') payload.authorId = null
   else payload.authorId = Number(payload.authorId)
 

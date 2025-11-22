@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校园头条 - 大学生专属资讯平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* 顶部导航栏 */
+        .header {
+            width: 100%;
+            background-color: #fff;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            padding: 0 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 70px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 999;
+        }
+
+        /* Logo区域 */
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 22px;
+            font-weight: 700;
+            color: #2d7ff9;
+        }
+
+        .logo i {
+            margin-right: 10px;
+            font-size: 26px;
+        }
+
+        /* 主导航 */
+        .main-nav {
+            display: flex;
+            align-items: center;
+            margin-left: 40px;
+        }
+
+        .nav-item {
+            padding: 0 22px;
+            height: 70px;
+            line-height: 70px;
+            font-size: 16px;
+            color: #555;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+
+        .nav-item.active {
+            color: #2d7ff9;
+        }
+
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 3px;
+            background-color: #2d7ff9;
+            border-radius: 3px;
+        }
+
+        .nav-item:hover:not(.active) {
+            color: #2d7ff9;
+            background-color: #f0f7ff;
+        }
+
+        /* 搜索区域 */
+        .search-area {
+            display: flex;
+            align-items: center;
+            flex: 0 0 380px;
+            margin: 0 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            height: 42px;
+            padding: 0 16px;
+            border: 1px solid #e1e4e8;
+            border-radius: 21px 0 0 21px;
+            outline: none;
+            font-size: 15px;
+            transition: all 0.25s ease;
+        }
+
+        .search-input:focus {
+            border-color: #2d7ff9;
+            box-shadow: 0 0 0 3px rgba(45, 127, 249, 0.1);
+        }
+
+        .search-btn {
+            height: 42px;
+            width: 52px;
+            background-color: #2d7ff9;
+            color: #fff;
+            border: none;
+            border-radius: 0 21px 21px 0;
+            cursor: pointer;
+            transition: background-color 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-btn:hover {
+            background-color: #1a68e0;
+        }
+
+        .search-btn i {
+            font-size: 18px;
+        }
+
+        /* 筛选区域 */
+        .filter {
+            display: flex;
+            align-items: center;
+            margin: 0 15px;
+        }
+
+        .filter-btn {
+            padding: 6px 14px;
+            margin: 0 6px;
+            border: 1px solid #e1e4e8;
+            border-radius: 18px;
+            background-color: #fff;
+            color: #666;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn:hover {
+            border-color: #2d7ff9;
+            color: #2d7ff9;
+            background-color: #f0f7ff;
+        }
+
+        .filter-btn.active {
+            border-color: #2d7ff9;
+            color: #2d7ff9;
+            background-color: #f0f7ff;
+            font-weight: 500;
+        }
+
+        /* 个人菜单区域 */
+        .mine-menu {
+            position: relative;
+        }
+
+        .mine-trigger {
+            padding: 0 22px;
+            height: 70px;
+            line-height: 70px;
+            font-size: 16px;
+            color: #555;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mine-trigger:hover {
+            color: #2d7ff9;
+            background-color: #f0f7ff;
+        }
+
+        .mine-trigger i {
+            margin-left: 8px;
+            font-size: 14px;
+            transition: transform 0.25s ease;
+        }
+
+        /* 下拉菜单容器 */
+        .mine-dropdown {
+            position: absolute;
+            top: 70px;
+            right: 0;
+            background-color: #fff;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+            border-radius: 8px;
+            overflow: hidden;
+            width: auto;
+            display: flex;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(20px) translateY(10px);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 1000;
+        }
+
+        /* 菜单展开状态 */
+        .mine-menu:hover .mine-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0) translateY(0);
+        }
+
+        .mine-menu:hover .mine-trigger i {
+            transform: rotate(180deg);
+        }
+
+        /* 下拉菜单项 */
+        .dropdown-item {
+            padding: 0 24px;
+            height: 50px;
+            line-height: 50px;
+            font-size: 15px;
+            color: #555;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+        }
+
+        .dropdown-item i {
+            margin-right: 8px;
+            font-size: 16px;
+            color: #888;
+        }
+
+        .dropdown-item:hover {
+            color: #2d7ff9;
+            background-color: #f0f7ff;
+        }
+
+        .dropdown-item:hover i {
+            color: #2d7ff9;
+        }
+
+        /* 消息红点提示 */
+        .msg-badge {
+            position: relative;
+        }
+
+        .msg-badge::after {
+            content: '';
+            position: absolute;
+            top: 12px;
+            right: 18px;
+            width: 8px;
+            height: 8px;
+            background-color: #ff4d4f;
+            border-radius: 50%;
+            border: 2px solid #fff;
+        }
+
+        /* 主体内容区域 */
+        .container {
+            max-width: 1200px;
+            margin: 100px auto 40px;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 70% 28%;
+            gap: 20px;
+        }
+
+        /* 头条列表 */
+        .news-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .news-card {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            cursor: pointer;
+        }
+
+        .news-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .news-title {
+            font-size: 19px;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 10px;
+            transition: color 0.2s ease;
+        }
+
+        .news-card:hover .news-title {
+            color: #2d7ff9;
+        }
+
+        .news-content {
+            font-size: 15px;
+            color: #666;
+            margin-bottom: 15px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .news-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #999;
+        }
+
+        .news-author {
+            display: flex;
+            align-items: center;
+        }
+
+        .author-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            margin-right: 8px;
+            object-fit: cover;
+        }
+
+        .news-stats {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .stats-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .stats-item:hover {
+            color: #2d7ff9;
+        }
+
+        .stats-item:hover i {
+            color: #2d7ff9;
+        }
+
+        .stats-item i {
+            font-size: 14px;
+        }
+
+        /* 评论区样式 */
+        .comment-section {
+            max-width: 1200px;
+            margin: 20px auto 60px;
+            padding: 0 20px;
+            display: none; /* 默认隐藏 */
+        }
+
+        .comment-container {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+            padding: 25px;
+        }
+
+        .comment-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .back-btn {
+            padding: 6px 12px;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            background-color: #fff;
+            color: #666;
+            font-size: 14px;
+            cursor: pointer;
+            margin-right: 20px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .back-btn:hover {
+            border-color: #2d7ff9;
+            color: #2d7ff9;
+        }
+
+        .comment-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #222;
+        }
+
+        .comment-input-area {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .comment-input-wrap {
+            flex: 1;
+        }
+
+        .comment-input {
+            width: 100%;
+            min-height: 100px;
+            padding: 15px;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            outline: none;
+            font-size: 15px;
+            resize: vertical;
+            transition: all 0.25s ease;
+        }
+
+        .comment-input:focus {
+            border-color: #2d7ff9;
+            box-shadow: 0 0 0 3px rgba(45, 127, 249, 0.1);
+        }
+
+        .comment-submit {
+            margin-top: 10px;
+            padding: 8px 20px;
+            background-color: #2d7ff9;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            float: right;
+        }
+
+        .comment-submit:hover {
+            background-color: #1a68e0;
+        }
+
+        .comment-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .comment-item {
+            display: flex;
+            gap: 15px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .comment-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .comment-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .comment-content-wrap {
+            flex: 1;
+        }
+
+        .comment-user-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .comment-username {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-right: 10px;
+        }
+
+        .comment-time {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .comment-text {
+            font-size: 14px;
+            color: #555;
+            line-height: 1.8;
+        }
+
+        .comment-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .comment-action {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .comment-action:hover {
+            color: #2d7ff9;
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar-card {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+        }
+
+        .sidebar-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-title .more {
+            font-size: 13px;
+            color: #2d7ff9;
+            cursor: pointer;
+        }
+
+        /* 热门话题 */
+        .hot-topics {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .topic-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .topic-rank {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: #f0f7ff;
+            color: #2d7ff9;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+        }
+
+        .topic-rank.top3 {
+            background-color: #2d7ff9;
+            color: #fff;
+        }
+
+        .topic-content {
+            flex: 1;
+        }
+
+        .topic-name {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 3px;
+        }
+
+        .topic-count {
+            font-size: 12px;
+            color: #999;
+        }
+
+        /* 推荐关注 */
+        .follow-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .follow-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .follow-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .follow-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 12px;
+            object-fit: cover;
+        }
+
+        .follow-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 3px;
+        }
+
+        .follow-desc {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .follow-btn {
+            padding: 4px 12px;
+            border: 1px solid #2d7ff9;
+            border-radius: 16px;
+            background-color: #fff;
+            color: #2d7ff9;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .follow-btn:hover {
+            background-color: #2d7ff9;
+            color: #fff;
+        }
+
+        /* 底部区域 */
+        .footer {
+            background-color: #fff;
+            border-top: 1px solid #f0f0f0;
+            padding: 30px 0;
+            margin-top: 40px;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 25px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .footer-link {
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .footer-link:hover {
+            color: #2d7ff9;
+        }
+
+        .copyright {
+            font-size: 13px;
+            color: #999;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .search-area {
+                flex: 0 0 320px;
+            }
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .header {
+                padding: 0 20px;
+            }
+            .filter {
+                display: none;
+            }
+            .search-area {
+                flex: 0 0 260px;
+                margin: 0 10px;
+            }
+            .main-nav .nav-item {
+                padding: 0 16px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                height: 60px;
+            }
+            .logo {
+                font-size: 18px;
+            }
+            .logo i {
+                font-size: 22px;
+            }
+            .main-nav {
+                margin-left: 20px;
+            }
+            .main-nav .nav-item:not(.active) {
+                display: none;
+            }
+            .search-area {
+                flex: 1;
+                margin: 0 10px;
+            }
+            .search-input {
+                height: 36px;
+                font-size: 14px;
+            }
+            .search-btn {
+                height: 36px;
+                width: 48px;
+            }
+            .mine-trigger {
+                padding: 0 16px;
+                font-size: 15px;
+            }
+            .dropdown-item {
+                padding: 0 20px;
+                height: 46px;
+                line-height: 46px;
+                font-size: 14px;
+            }
+            .container {
+                margin-top: 80px;
+            }
+            .comment-section {
+                margin-top: 10px;
+            }
+            .comment-container {
+                padding: 15px;
+            }
+            .comment-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .header {
+                padding: 0 15px;
+            }
+            .search-area {
+                display: none;
+            }
+            .main-nav {
+                margin-left: 15px;
+            }
+            .mine-dropdown {
+                width: 100vw;
+                justify-content: center;
+                left: 0;
+                right: 0;
+            }
+            .comment-input-area {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .user-avatar {
+                align-self: flex-start;
+            }
+        }
+    </style>
+    <!-- 引入图标库 -->
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <div class="header">
+        <!-- Logo -->
+        <div class="logo">
+            <i class="fas fa-newspaper"></i>
+            <span>校园头条</span>
+        </div>
+
+        <!-- 主导航 -->
+        <div class="main-nav">
+            <div class="nav-item active">首页</div>
+            <div class="nav-item">热点</div>
+            <div class="nav-item">资讯</div>
+            <div class="nav-item">活动</div>
+            <div class="nav-item">求职</div>
+        </div>
+
+        <!-- 搜索区域 -->
+        <div class="search-area">
+            <input type="text" class="search-input" placeholder="搜索校园热点、资讯、活动...">
+            <button class="search-btn"><i class="fas fa-search"></i></button>
+        </div>
+
+        <!-- 筛选区域 -->
+        <div class="filter">
+            <button class="filter-btn active">按时间</button>
+            <button class="filter-btn">按关注度</button>
+            <button class="filter-btn">按点赞量</button>
+            <button class="filter-btn">按收藏量</button>
+        </div>
+
+        <!-- 个人菜单（新增设置按钮） -->
+        <div class="mine-menu">
+            <div class="mine-trigger">
+                我的
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="mine-dropdown">
+                <div class="dropdown-item">
+                    <i class="fas fa-user-friends"></i>
+                    <span>我的关注</span>
+                </div>
+                <div class="dropdown-item">
+                    <i class="fas fa-thumbs-up"></i>
+                    <span>我的点赞</span>
+                </div>
+                <div class="dropdown-item">
+                    <i class="fas fa-star"></i>
+                    <span>我的收藏</span>
+                </div>
+                <div class="dropdown-item">
+                    <i class="fas fa-pen-fancy"></i>
+                    <span>我的发布</span>
+                </div>
+                <div class="dropdown-item msg-badge">
+                    <i class="fas fa-bell"></i>
+                    <span>我的消息</span>
+                </div>
+                <div class="dropdown-item">
+                    <i class="fas fa-cog"></i>
+                    <span>设置</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主体内容区域 -->
+    <div class="container">
+        <!-- 头条列表 -->
+        <div class="news-list">
+            <div class="news-card" data-news-id="1" data-news-title="校园秋季运动会圆满落幕，这些精彩瞬间不容错过！">
+                <h3 class="news-title">校园秋季运动会圆满落幕，这些精彩瞬间不容错过！</h3>
+                <p class="news-content">10月28日，我校2024年秋季运动会在体育场正式闭幕。本次运动会共有3000余名师生参赛，设置了田径、球类、趣味运动等20余个项目，展现了同学们的青春活力和团队协作精神...</p>
+                <div class="news-meta">
+                    <div class="news-author">
+                        <img src="https://picsum.photos/id/1005/200" alt="作者头像" class="author-avatar">
+                        <span>校园记者团</span>
+                    </div>
+                    <div class="news-stats">
+                        <div class="stats-item">
+                            <i class="far fa-eye"></i>
+                            <span>2.3k</span>
+                        </div>
+                        <div class="stats-item">
+                            <i class="far fa-thumbs-up"></i>
+                            <span>568</span>
+                        </div>
+                        <div class="stats-item comment-btn">
+                            <i class="far fa-comment"></i>
+                            <span>126</span>
+                        </div>
+                        <div class="stats-item">
+                            <i class="far fa-bookmark"></i>
+                            <span>89</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="news-card" data-news-id="2" data-news-title="【重要通知】2025届毕业生校园招聘会11月启动，500+企业入驻">
+                <h3 class="news-title">【重要通知】2025届毕业生校园招聘会11月启动，500+企业入驻</h3>
+                <p class="news-content">为帮助2025届毕业生顺利就业，学校就业指导中心将于11月15日-12月15日举办秋季校园招聘会。本次招聘会吸引了500余家企业参与，涵盖互联网、金融、制造、教育等多个行业...</p>
+                <div class="news-meta">
+                    <div class="news-author">
+                        <img src="https://picsum.photos/id/1012/200" alt="作者头像" class="author-avatar">
+                        <span>就业指导中心</span>
+                    </div>
+                    <div class="news-stats">
+                        <div class="stats-item">
+                            <i class="far fa-eye"></i>
+                            <span>4.7k</span>
+                        </div>
+                        <div class="stats-item">
+                            <i class="far fa-thumbs-up"></i>
+                            <span>892</span>
+                        </div>
+                        <div class="stats-item comment-btn">
+                            <i class="far fa-comment"></i>
+                            <span>345</span>
+                        </div>
+                        <div class="stats-item">
+                            <i class="far fa-bookmark"></i>
+                            <span>621</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="news-card" data-news-id="3" data-news-title="校园辩论赛总决赛来袭！巅峰对决，谁将问鼎冠军？">
+                <h3 class="news-title">校园辩论赛总决赛来袭！巅峰对决，谁将问鼎冠军？</h3>
+                <p class="news-content">经过一个月的激烈角逐，我校第十六届校园辩论赛总决赛将于11月5日晚7点在学术报告厅举行。来自各学院的8支队伍脱颖而出，将围绕"人工智能是否会取代人类创造力"等热门话题展开辩论...</p>
+                <div class="news-meta">
+                    <div class="news-author">
+                        <img src="https://picsum.photos/id/1027/200" alt="作者头像" class="author-avatar">
+                        <span>学生会</span>
+                    </div>
+                    <div class="news-stats">
+                        <div class="stats-item">
+                            <i class="far fa-eye"></i>
+                            <span>1.8k</span>
+                        </div>
+                        <div class="stats-item">
+                            <i class="far fa-thumbs-up"></i>
+                            <span>432</span>
+                        </div>
+                        <div class="stats-item comment-btn">
+                            <i class="far fa-comment"></i>
+                            <span>98</span>
+                        </div>
+                        <div class="stats-item">
+                            <i class="far fa-bookmark"></i>
+                            <span>76</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="news-card" data-news-id="4" data-news-title="图书馆新增10万册电子图书，涵盖多个学科领域">
+                <h3 class="news-title">图书馆新增10万册电子图书，涵盖多个学科领域</h3>
+                <p class="news-content">为满足师生的学习科研需求，我校图书馆近期新增10万册电子图书，涵盖计算机科学、文学、经济学、医学等多个学科领域。师生可通过图书馆官网、移动APP等渠道免费查阅...</p>
+                <div class="news-meta">
+                    <div class="news-author">
+                        <img src="https://picsum.photos/id/1074/200" alt="作者头像" class="author-avatar">
+                        <span>图书馆</span>
+                    </div>
+                    <div class="news-stats">
+                        <div class="stats-item">
+                            <i class="far fa-eye"></i>
+                            <span>2.1k</span>
+                        </div>
+                        <div class="stats-item">
+                            <i class="far fa-thumbs-up"></i>
+                            <span>389</span>
+                        </div>
+                        <div class="stats-item comment-btn">
+                            <i class="far fa-comment"></i>
+                            <span>67</span>
+                        </div>
+                        <div class="stats-item">
+                            <i class="far fa-bookmark"></i>
+                            <span>124</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <!-- 热门话题 -->
+            <div class="sidebar-card">
+                <div class="sidebar-title">
+                    <span>热门话题</span>
+                    <span class="more">更多</span>
+                </div>
+                <div class="hot-topics">
+                    <div class="topic-item">
+                        <div class="topic-rank top3">1</div>
+                        <div class="topic-content">
+                            <div class="topic-name">#校园招聘会企业名单公布#</div>
+                            <div class="topic-count">2.3万讨论 · 今日最热</div>
+                        </div>
+                    </div>
+                    <div class="topic-item">
+                        <div class="topic-rank top3">2</div>
+                        <div class="topic-content">
+                            <div class="topic-name">#秋季运动会精彩瞬间#</div>
+                            <div class="topic-count">1.8万讨论 · 昨日最热</div>
+                        </div>
+                    </div>
+                    <div class="topic-item">
+                        <div class="topic-rank top3">3</div>
+                        <div class="topic-content">
+                            <div class="topic-name">#期末考试安排出炉#</div>
+                            <div class="topic-count">1.5万讨论 · 3天前</div>
+                        </div>
+                    </div>
+                    <div class="topic-item">
+                        <div class="topic-rank">4</div>
+                        <div class="topic-content">
+                            <div class="topic-name">#校园辩论赛总决赛#</div>
+                            <div class="topic-count">9865讨论 · 2天前</div>
+                        </div>
+                    </div>
+                    <div class="topic-item">
+                        <div class="topic-rank">5</div>
+                        <div class="topic-content">
+                            <div class="topic-name">#图书馆新增电子资源#</div>
+                            <div class="topic-count">7632讨论 · 1天前</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 推荐关注 -->
+            <div class="sidebar-card">
+                <div class="sidebar-title">
+                    <span>推荐关注</span>
+                    <span class="more">换一批</span>
+                </div>
+                <div class="follow-list">
+                    <div class="follow-item">
+                        <div class="follow-info">
+                            <img src="https://picsum.photos/id/1001/200" alt="关注头像" class="follow-avatar">
+                            <div>
+                                <div class="follow-name">校园活动君</div>
+                                <div class="follow-desc">校园活动一手资讯</div>
+                            </div>
+                        </div>
+                        <button class="follow-btn">关注</button>
+                    </div>
+                    <div class="follow-item">
+                        <div class="follow-info">
+                            <img src="https://picsum.photos/id/1003/200" alt="关注头像" class="follow-avatar">
+                            <div>
+                                <div class="follow-name">求职干货站</div>
+                                <div class="follow-desc">分享求职技巧与机会</div>
+                            </div>
+                        </div>
+                        <button class="follow-btn">关注</button>
+                    </div>
+                    <div class="follow-item">
+                        <div class="follow-info">
+                            <img src="https://picsum.photos/id/1006/200" alt="关注头像" class="follow-avatar">
+                            <div>
+                                <div class="follow-name">学术前沿菌</div>
+                                <div class="follow-desc">分享学术动态与资源</div>
+                            </div>
+                        </div>
+                        <button class="follow-btn">关注</button>
+                    </div>
+                    <div class="follow-item">
+                        <div class="follow-info">
+                            <img src="https://picsum.photos/id/1010/200" alt="关注头像" class="follow-avatar">
+                            <div>
+                                <div class="follow-name">校园美食团</div>
+                                <div class="follow-desc">发掘校园及周边美食</div>
+                            </div>
+                        </div>
+                        <button class="follow-btn">关注</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 评论区（默认隐藏，点击评论按钮显示） -->
+    <div class="comment-section" id="commentSection">
+        <div class="comment-container">
+            <div class="comment-header">
+                <button class="back-btn" id="backBtn">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>返回列表</span>
+                </button>
+                <h3 class="comment-title" id="commentNewsTitle">评论区</h3>
+            </div>
+            <div class="comment-input-area">
+                <img src="https://picsum.photos/id/1025/200" alt="用户头像" class="user-avatar">
+                <div class="comment-input-wrap">
+                    <textarea class="comment-input" placeholder="分享你的看法..."></textarea>
+                    <button class="comment-submit">发表评论</button>
+                </div>
+            </div>
+            <div class="comment-list" id="commentList">
+                <!-- 评论列表会根据新闻ID动态加载，这里展示示例评论 -->
+                <div class="comment-item">
+                    <img src="https://picsum.photos/id/1019/200" alt="评论者头像" class="comment-avatar">
+                    <div class="comment-content-wrap">
+                        <div class="comment-user-info">
+                            <span class="comment-username">李同学</span>
+                            <span class="comment-time">2小时前</span>
+                        </div>
+                        <div class="comment-text">运动会真的太精彩了！我们班在接力赛中拿了冠军，大家都超级开心！感谢学校提供这么好的平台，让我们能展现自己的风采～</div>
+                        <div class="comment-actions">
+                            <div class="comment-action">
+                                <i class="far fa-thumbs-up"></i>
+                                <span>32</span>
+                            </div>
+                            <div class="comment-action">
+                                <i class="far fa-comment"></i>
+                                <span>回复</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="comment-item">
+                    <img src="https://picsum.photos/id/1024/200" alt="评论者头像" class="comment-avatar">
+                    <div class="comment-content-wrap">
+                        <div class="comment-user-info">
+                            <span class="comment-username">王老师</span>
+                            <span class="comment-time">5小时前</span>
+                        </div>
+                        <div class="comment-text">看到同学们在赛场上拼搏的样子，真的很感动。运动不仅能锻炼身体，还能培养团队精神和竞争意识，希望大家能坚持运动，保持良好的身心状态！</div>
+                        <div class="comment-actions">
+                            <div class="comment-action">
+                                <i class="far fa-thumbs-up"></i>
+                                <span>48</span>
+                            </div>
+                            <div class="comment-action">
+                                <i class="far fa-comment"></i>
+                                <span>回复</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="comment-item">
+                    <img src="https://picsum.photos/id/1079/200" alt="评论者头像" class="comment-avatar">
+                    <div class="comment-content-wrap">
+                        <div class="comment-user-info">
+                            <span class="comment-username">张同学</span>
+                            <span class="comment-time">昨天 18:30</span>
+                        </div>
+                        <div class="comment-text">想问一下明年运动会还会增加新项目吗？希望能有滑板或者轮滑项目，感觉会很有意思！</div>
+                        <div class="comment-actions">
+                            <div class="comment-action">
+                                <i class="far fa-thumbs-up"></i>
+                                <span>15</span>
+                            </div>
+                            <div class="comment-action">
+                                <i class="far fa-comment"></i>
+                                <span>回复</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部区域 -->
+    <div class="footer">
+        <div class="footer-container">
+            <div class="footer-links">
+                <div class="footer-link">关于我们</div>
+                <div class="footer-link">联系我们</div>
+                <div class="footer-link">用户协议</div>
+                <div class="footer-link">隐私政策</div>
+                <div class="footer-link">帮助中心</div>
+            </div>
+            <div class="copyright">
+                © 2025 校园头条 版权所有 | 备案号：XXXXX
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 筛选按钮切换逻辑
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // 个人菜单项点击事件
+        document.querySelectorAll('.dropdown-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const action = this.textContent.trim();
+                console.log(`用户点击了：${action}`);
+                // 设置按钮可添加跳转逻辑
+                if (action === '设置') {
+                    // 示例：跳转到设置页面
+                    // window.location.href = '/settings';
+                    alert('进入设置页面');
+                } else {
+                    // 其他菜单项逻辑
+                    // window.location.href = `/${action.replace('我的', '').toLowerCase()}`;
+                }
+            });
+        });
+
+        // 推荐关注按钮点击事件
+        document.querySelectorAll('.follow-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.textContent === '关注') {
+                    this.textContent = '已关注';
+                    this.style.backgroundColor = '#f0f0f0';
+                    this.style.color = '#999';
+                    this.style.borderColor = '#f0f0f0';
+                } else {
+                    this.textContent = '关注';
+                    this.style.backgroundColor = '#fff';
+                    this.style.color = '#2d7ff9';
+                    this.style.borderColor = '#2d7ff9';
+                }
+            });
+        });
+
+        // 搜索功能
+        document.querySelector('.search-btn').addEventListener('click', function() {
+            const searchText = document.querySelector('.search-input').value.trim();
+            if (searchText) {
+                console.log(`搜索内容：${searchText}`);
+                // 此处可添加搜索逻辑
+            }
+        });
+
+        // 新闻卡片点击事件（除评论按钮外）
+        document.querySelectorAll('.news-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                // 点击评论按钮时不触发卡片跳转
+                if (!e.target.closest('.comment-btn')) {
+                    const title = this.querySelector('.news-title').textContent;
+                    console.log(`点击查看新闻：${title}`);
+                    // 此处可添加新闻详情页跳转逻辑
+                }
+            });
+        });
+
+        // 导航项点击事件
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                const navName = this.textContent;
+                console.log(`切换到${navName}栏目`);
+                // 显示首页列表，隐藏评论区
+                document.querySelector('.container').style.display = 'grid';
+                document.getElementById('commentSection').style.display = 'none';
+            });
+        });
+
+        // 评论按钮点击事件（核心功能）
+        const commentBtns = document.querySelectorAll('.comment-btn');
+        const commentSection = document.getElementById('commentSection');
+        const commentNewsTitle = document.getElementById('commentNewsTitle');
+        const commentList = document.getElementById('commentList');
+        const container = document.querySelector('.container');
+        const backBtn = document.getElementById('backBtn');
+
+        // 模拟不同新闻的评论数据
+        const commentData = {
+            1: [
+                {
+                    avatar: 'https://picsum.photos/id/1019/200',
+                    username: '李同学',
+                    time: '2小时前',
+                    content: '运动会真的太精彩了！我们班在接力赛中拿了冠军，大家都超级开心！感谢学校提供这么好的平台，让我们能展现自己的风采～',
+                    like: 32,
+                    reply: 5
+                },
+                {
+                    avatar: 'https://picsum.photos/id/1024/200',
+                    username: '王老师',
+                    time: '5小时前',
+                    content: '看到同学们在赛场上拼搏的样子，真的很感动。运动不仅能锻炼身体，还能培养团队精神和竞争意识，希望大家能坚持运动，保持良好的身心状态！',
+                    like: 48,
+                    reply: 3
+                },
+                {
+                    avatar: 'https://picsum.photos/id/1079/200',
+                    username: '张同学',
+                    time: '昨天 18:30',
+                    content: '想问一下明年运动会还会增加新项目吗？希望能有滑板或者轮滑项目，感觉会很有意思！',
+                    like: 15,
+                    reply: 2
+                }
+            ],
+            2: [
+                {
+                    avatar: 'https://picsum.photos/id/1002/200',
+                    username: '赵同学',
+                    time: '1小时前',
+                    content: '终于等到招聘会了！想问一下有没有互联网大厂参加呀？准备了好久，希望能拿到心仪的offer～',
+                    like: 67,
+                    reply: 12
+                },
+                {
+                    avatar: 'https://picsum.photos/id/1004/200',
+                    username: '就业指导中心',
+                    time: '3小时前',
+                    content: '本次招聘会有字节跳动、腾讯、阿里等30余家互联网企业参加，还有众多国企和上市公司，大家可以提前准备好简历，祝同学们求职顺利！',
+                    like: 124,
+                    reply: 8
+                },
+                {
+                    avatar: 'https://picsum.photos/id/1066/200',
+                    username: '孙同学',
+                    time: '昨天 10:15',
+                    content: '请问招聘会需要预约吗？还是可以直接去现场？',
+                    like: 23,
+                    reply: 4
+                }
+            ],
+            3: [
+                {
+                    avatar: 'https://picsum.photos/id/1014/200',
+                    username: '周同学',
+                    time: '4小时前',
+                    content: '期待辩论赛总决赛！之前看了半决赛，双方辩手都太厉害了，逻辑清晰、言辞犀利，已经约了同学一起去现场看～',
+                    like: 45,
+                    reply: 7
+                },
+                {
+                    avatar: 'https://picsum.photos/id/1033/200',
+                    username: '学生会',
+                    time: '昨天 16:40',
+                    content: '感谢大家的支持！总决赛现场会有抽奖活动，还有限定周边赠送，提前到场可以抢占好位置哦～',
+                    like: 89,
+                    reply: 3
+                }
+            ],
+            4: [
+                {
+                    avatar: 'https://picsum.photos/id/1048/200',
+                    username: '吴同学',
+                    time: '6小时前',
+                    content: '太好了！正好在写论文需要很多参考资料，新增的电子图书太及时了，为图书馆点赞～',
+                    like: 56,
+                    reply: 2
+                },
+                {
+                    avatar: 'https://picsum.photos/id/1062/200',
+                    username: '郑同学',
+                    time: '昨天 09:20',
+                    content: '请问电子图书怎么查找呀？有没有详细的使用指南？',
+                    like: 18,
+                    reply: 5
+                },
+                {
+                    avatar: 'https://picsum.photos/id/1074/200',
+                    username: '图书馆',
+                    time: '昨天 11:30',
+                    content: '同学你好，可登录图书馆官网，在"电子资源"栏目中查找，也可以关注图书馆公众号，回复"电子图书"获取使用指南～',
+                    like: 34,
+                    reply: 1
+                }
+            ]
+        };
+
+        // 评论按钮点击事件
+        commentBtns.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation(); // 阻止事件冒泡，避免触发新闻卡片跳转
+                const newsCard = this.closest('.news-card');
+                const newsId = newsCard.getAttribute('data-news-id');
+                const newsTitle = newsCard.getAttribute('data-news-title');
+                
+                // 更新评论区标题
+                commentNewsTitle.textContent = `《${newsTitle}》评论区`;
+                
+                // 加载对应新闻的评论数据
+                loadComments(newsId);
+                
+                // 显示评论区，隐藏首页列表
+                container.style.display = 'none';
+                commentSection.style.display = 'block';
+                
+                // 平滑滚动到评论区
+                commentSection.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+
+        // 加载评论数据
+        function loadComments(newsId) {
+            const comments = commentData[newsId] || [];
+            let commentHtml = '';
+            
+            comments.forEach(comment => {
+                commentHtml += `
+                    <div class="comment-item">
+                        <img src="${comment.avatar}" alt="评论者头像" class="comment-avatar">
+                        <div class="comment-content-wrap">
+                            <div class="comment-user-info">
+                                <span class="comment-username">${comment.username}</span>
+                                <span class="comment-time">${comment.time}</span>
+                            </div>
+                            <div class="comment-text">${comment.content}</div>
+                            <div class="comment-actions">
+                                <div class="comment-action">
+                                    <i class="far fa-thumbs-up"></i>
+                                    <span>${comment.like}</span>
+                                </div>
+                                <div class="comment-action">
+                                    <i class="far fa-comment"></i>
+                                    <span>回复(${comment.reply})</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // 如果没有评论
+            if (comments.length === 0) {
+                commentHtml = `
+                    <div style="text-align: center; padding: 30px 0; color: #999;">
+                        <i class="far fa-comment" style="font-size: 36px; margin-bottom: 10px; display: block;"></i>
+                        <p>暂无评论，快来抢沙发～</p>
+                    </div>
+                `;
+            }
+            
+            commentList.innerHTML = commentHtml;
+        }
+
+        // 返回列表按钮事件
+        backBtn.addEventListener('click', function() {
+            // 显示首页列表，隐藏评论区
+            container.style.display = 'grid';
+            commentSection.style.display = 'none';
+            
+            // 平滑滚动到顶部
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // 发表评论按钮事件
+        document.querySelector('.comment-submit').addEventListener('click', function() {
+            const commentInput = document.querySelector('.comment-input');
+            const content = commentInput.value.trim();
+            
+            if (content) {
+                // 模拟发表评论（实际项目中需对接后端接口）
+                const newComment = {
+                    avatar: 'https://picsum.photos/id/1025/200',
+                    username: '我',
+                    time: '刚刚',
+                    content: content,
+                    like: 0,
+                    reply: 0
+                };
+                
+                // 添加到评论列表顶部
+                const commentHtml = `
+                    <div class="comment-item">
+                        <img src="${newComment.avatar}" alt="评论者头像" class="comment-avatar">
+                        <div class="comment-content-wrap">
+                            <div class="comment-user-info">
+                                <span class="comment-username">${newComment.username}</span>
+                                <span class="comment-time">${newComment.time}</span>
+                            </div>
+                            <div class="comment-text">${newComment.content}</div>
+                            <div class="comment-actions">
+                                <div class="comment-action">
+                                    <i class="far fa-thumbs-up"></i>
+                                    <span>${newComment.like}</span>
+                                </div>
+                                <div class="comment-action">
+                                    <i class="far fa-comment"></i>
+                                    <span>回复(${newComment.reply})</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                commentList.insertAdjacentHTML('afterbegin', commentHtml);
+                commentInput.value = ''; // 清空输入框
+                
+                // 滚动到最新评论
+                commentList.querySelector('.comment-item:first-child').scrollIntoView({ behavior: 'smooth' });
+            } else {
+                alert('请输入评论内容～');
+            }
+        });
+
+        // 评论点赞事件
+        commentList.addEventListener('click', function(e) {
+            const likeBtn = e.target.closest('.comment-action');
+            if (likeBtn && likeBtn.querySelector('.fa-thumbs-up')) {
+                const likeNum = likeBtn.querySelector('span');
+                likeNum.textContent = parseInt(likeNum.textContent) + 1;
+                
+                // 添加点赞动画
+                const icon = likeBtn.querySelector('i');
+                icon.classList.remove('far');
+                icon.classList.add('fas', 'text-red-500');
+                setTimeout(() => {
+                    icon.classList.remove('text-red-500');
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>

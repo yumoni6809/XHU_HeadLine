@@ -1,8 +1,7 @@
-//// filepath: f:\Develop\project\XHU_HeadLine\XHU_HeadLine\front\headline_admin_ui\src\api\port.js
 import http from './http'
 
 /**
- * 分页查询新闻（newsPort）
+ * 分页查询新闻
  * 对应后端 POST /admin/port/list
  * params: { pageNum, pageSize, title, authorId, categoryId, status }
  */
