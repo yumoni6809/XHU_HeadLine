@@ -13,6 +13,7 @@ import {
 } from '@element-plus/icons-vue'
 import { queryPageApi, deleteUserApi, addUserApi, updateUserApi } from '@/api/user'
 import { curd } from '@/api/curd'
+import { computed } from 'vue'
 // 初始用户对象
 const initialUser = {
   id: null,
@@ -116,17 +117,20 @@ const props = defineProps<{
 // 新增 / 编辑 / 保存 / 取消
 const addUser = addItem
 const updateUser = updateItem
+
 const saveUser = async () => {
-  const payload = JSON.parse(JSON.stringify(user))
+  const targetUser = user.value || user
+
+  const payload = JSON.parse(JSON.stringify(targetUser))
   if (!payload.userName) {
     ElMessage.error('请填写用户名')
     return
   }
-  Object.assign(user, payload)
+  Object.assign(targetUser, payload)
   try {
     const res = await saveItem()
     if (res && (res.code || res.message)) {
-      ElMessage.success(res.message || (user.id ? '更新成功' : '添加成功'))
+      ElMessage.success(res.message || (targetUser.id ? '更新成功' : '添加成功'))
       cancel()
       search()
     } else {
@@ -140,10 +144,10 @@ const saveUser = async () => {
 const cancelEdit = cancel
 
 // 上传回调与校验（新增）
-const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5 MB
+const MAX_FILE_SIZE = 1 * 1024 * 1024 // 1 MB
 const beforeUpload = (file: File) => {
   if (file.size > MAX_FILE_SIZE) {
-    ElMessage.error('上传文件大小不能超过 5 MB')
+    ElMessage.error('上传文件大小不能超过 1 MB')
     return false
   }
   return true
@@ -160,10 +164,21 @@ const uploadSuccess = (Response: unknown) => {
       return
     }
   }
-  // 尝试解析常见位置
-  const url = data?.url || data?.data?.url || data?.avatarUrl || data?.data?.avatarUrl || ''
-  if (url) {
-    user.avatarUrl = url
+  // 1. 检查后端返回的业务状态码 (code: 0 表示失败)
+  if (data.code === 0) {
+    ElMessage.error(data.message || '上传失败，请检查后端日志')
+    return
+  }
+
+  // 2. 修复：添加 data?.imageUrl 以匹配后端返回的字段
+  const url = data?.imageUrl || data?.url || data?.data?.url || data?.avatarUrl || data?.data?.avatarUrl || ''
+
+    if (url) {
+    if (user.value) {
+      user.value.avatarUrl = url
+    } else {
+      (user as any).avatarUrl = url
+    }
     ElMessage.success('上传成功')
   } else {
     ElMessage.warning('上传完成，但后端未返回图片链接')
@@ -174,6 +189,19 @@ const uploadError = () => {
   console.error('上传失败')
   ElMessage.error('上传失败')
 }
+// 文件上传
+const uploadHeaders = computed(() => {
+  const token = localStorage.getItem('auth_token') // 这里必须用 auth_token
+  return {
+    token: token, // 后端拦截器里写的 config.headers.token = ... 说明后端要这个键
+    // 为了保险，也可以把 Authorization 带上，万一后端改了标准
+    Authorization: token
+  }
+})
+
+
+
+
 </script>
 <template>
   <h2>用户管理</h2>
@@ -299,13 +327,13 @@ const uploadError = () => {
           <el-form-item label="头像">
             <el-upload
               class="image-uploader"
-              action="/api/admin/user/avatar"
+              action="/api/admin/user/uploadImage"
               name="image"
               :show-file-list="false"
               :on-success="uploadSuccess"
               :on-error="uploadError"
               :before-upload="beforeUpload"
-              :headers="{ Accept: 'application/json' }"
+              :headers="uploadHeaders"
               accept="image/*"
             >
               <el-button size="small" type="primary">点击上传头像</el-button>
@@ -348,11 +376,6 @@ const uploadError = () => {
     />
   </div>
 
-  <div class="space-y-6 p-8 dark:bg-black">
-    <FileUpload class="rounded-lg border border-dashed border-neutral-200 dark:border-neutral-800">
-      <FileUploadGrid />
-    </FileUpload>
-  </div>
 </template>
 <style scoped>
 .container {

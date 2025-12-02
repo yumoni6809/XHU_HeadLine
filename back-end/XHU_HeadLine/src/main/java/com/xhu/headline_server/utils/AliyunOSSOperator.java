@@ -1,10 +1,9 @@
 package com.xhu.headline_server.utils;
 
-
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.io.ByteArrayInputStream;
 import java.time.LocalDate;
@@ -14,37 +13,35 @@ import java.util.UUID;
 @Component
 public class AliyunOSSOperator {
 
-    private final AliyunOSSProperties aliyunOSSProperties;
+    private final AliyunOSSProperties props;
 
-    @Autowired
-    public AliyunOSSOperator(AliyunOSSProperties aliyunOSSProperties) {
-        this.aliyunOSSProperties = aliyunOSSProperties;
+    public AliyunOSSOperator(AliyunOSSProperties props) {
+        this.props = props;
     }
 
-    public String upload(byte[] content, String originalFilename) throws Exception {
-        String endpoint = aliyunOSSProperties.getEndpoint();
-        String bucketName = aliyunOSSProperties.getBucketName();
+    public String upload(byte[] content, String originalFilename) {
+        String endpoint = props.getEndpoint();
+        String bucketName = props.getBucketName();
+        String accessKeyId = props.getAccessKeyId();
+        String accessKeySecret = props.getAccessKeySecret();
 
-        if (endpoint == null || endpoint.isBlank()) {
+        if (!StringUtils.hasText(endpoint)) {
             throw new IllegalStateException("aliyun.oss.endpoint is not configured");
         }
-        if (bucketName == null || bucketName.isBlank()) {
+        if (!StringUtils.hasText(bucketName)) {
             throw new IllegalStateException("aliyun.oss.bucket-name is not configured");
         }
-
-        String accessKeyId = System.getenv("OSS_ACCESS_KEY_ID");
-        String accessKeySecret = System.getenv("OSS_ACCESS_KEY_SECRET");
-        if (accessKeyId == null || accessKeySecret == null) {
-            throw new IllegalStateException("Environment variables OSS_ACCESS_KEY_ID and OSS_ACCESS_KEY_SECRET must be set");
+        if (!StringUtils.hasText(accessKeyId) || !StringUtils.hasText(accessKeySecret)) {
+            throw new IllegalStateException("aliyun.oss.access-key-id/access-key-secret is not configured");
         }
 
         String dir = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM"));
-        String ext = "";
-        if (originalFilename != null && originalFilename.contains(".")) {
-            ext = originalFilename.substring(originalFilename.lastIndexOf("."));
-        }
-        String newFileName = UUID.randomUUID().toString() + ext;
-        String objectName = dir + "/" + newFileName;
+        String ext = (originalFilename != null && originalFilename.lastIndexOf('.') >= 0)
+                ? originalFilename.substring(originalFilename.lastIndexOf('.')) : "";
+        String objectName = dir + "/" + UUID.randomUUID() + ext;
+
+        // endpoint 必须为纯域名；SDK允许带协议，这里统一去掉协议以便拼最终 URL
+        String normalizedEndpoint = endpoint.replaceFirst("^https?://", "");
 
         OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
         try {
@@ -52,12 +49,6 @@ public class AliyunOSSOperator {
         } finally {
             ossClient.shutdown();
         }
-
-        // normalize endpoint (remove protocol if present) and return https URL
-        String normalized = endpoint;
-        if (normalized.startsWith("http://")) normalized = normalized.substring(7);
-        else if (normalized.startsWith("https://")) normalized = normalized.substring(8);
-
-        return "https://" + bucketName + "." + normalized + "/" + objectName;
+        return "https://" + bucketName + "." + normalizedEndpoint + "/" + objectName;
     }
 }
