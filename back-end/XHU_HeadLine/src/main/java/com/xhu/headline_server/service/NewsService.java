@@ -3,7 +3,7 @@ package com.xhu.headline_server.service;
 import java.util.Map;
 
 public interface NewsService {
-    Map<String, Object> getNewsList(int page, int size, String keyword, String categoryId, String sort);
+    Map<String, Object> getNewsList(int page, int size, String keyword, Integer categoryId, String sort);
 
     Map<String, Object> getNewsDetail(Long id);
 

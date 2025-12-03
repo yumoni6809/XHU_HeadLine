@@ -105,22 +105,18 @@
         WHERE id = #{id} AND deleted = 0
     </select>
 
-    <select id="findNews" resultMap="NewsPortResultMap">
-        SELECT <include refid="Base_Columns"/> FROM news_port
+    <select id="findNews" parameterType="map" resultType="com.xhu.headline_server.entity.NewsPort">
+        SELECT id,author_id,category_id,title,content,cover_images,status,
+        view_count,like_count,comment_count,source,create_time,update_time,deleted
+        FROM news_port
         WHERE deleted = 0
-        <if test="keyword != null and keyword != ''">
-            AND title LIKE CONCAT('%', #{keyword}, '%')
-        </if>
-        <if test="categoryId != null">
-            AND category_id = #{categoryId}
-        </if>
         ORDER BY
         <choose>
-            <when test="sort == 'like'"> like_count DESC </when>
-            <when test="sort == 'view'"> view_count DESC </when>
-            <otherwise> create_time DESC </otherwise>
+            <when test="sort == 'hot'">view_count DESC</when>
+            <otherwise>create_time DESC</otherwise>
         </choose>
-        LIMIT #{size} OFFSET ${(page - 1) * size}
+        LIMIT #{limit}
+        OFFSET #{offset}
     </select>
 
     <select id="countNews" resultType="int">

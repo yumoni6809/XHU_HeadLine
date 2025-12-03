@@ -2,10 +2,13 @@ package com.xhu.headline_server.Controller.user;
 
 
 import com.xhu.headline_server.entity.NewsPort;
+import com.xhu.headline_server.service.CategoryService;
 import com.xhu.headline_server.service.NewsService;
+import com.xhu.headline_server.utils.AliyunOSSOperator;
 import com.xhu.headline_server.service.impl.NewPortServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,24 +21,44 @@ public class UserPostController {
     private NewsService newsService;
     @Autowired
     private NewPortServiceImpl newPortServiceImpl;
+    @Autowired
+    private CategoryService categoryService;
+    @Autowired
+    private AliyunOSSOperator aliyunOSSOperator;
+
 
     // 查咨询列表
     // 请求体示例
     // params : { page , size , keyword , categoryId , sort}
-    @PostMapping("/news")
-    public Map<String, Object> getNewsList(@RequestParam Map<String, Object> params) {
+    @GetMapping("/news")
+    public Map<String, Object> getNewsList(@RequestParam(defaultValue = "1") int page,
+                                           @RequestParam(defaultValue = "10") int size,
+                                           @RequestParam(required = false) String keyword,
+                                           @RequestParam(required = false) Integer categoryId,
+                                           @RequestParam(defaultValue = "time") String sort) {
+        if (page <= 0 || size <= 0) {
+            return Map.of("code", 0, "message", "page/size 必须大于 0");
+        }
+        if (!"time".equals(sort) && !"hot".equals(sort)) {
+            return Map.of("code", 0, "message", "sort 仅支持 time/hot");
+        }
         try {
-            int page = Integer.parseInt(params.getOrDefault("page", "1").toString());
-            int size = Integer.parseInt(params.getOrDefault("size", "10").toString());
-            String keyword = params.getOrDefault("keyword", "").toString();
-            String categoryId = params.getOrDefault("categoryId", "").toString();
-            String sort = params.getOrDefault("sort", "time").toString();
-
-            return newsService.getNewsList(page, size, keyword, categoryId, sort);
-        } catch (Exception e) {
-            return Map.of("error", "Invalid parameters");
+            Map<String, Object> data = newsService.getNewsList(
+                    page,
+                    size,
+                    keyword == null ? "" : keyword.trim(),
+                    categoryId,
+                    sort
+            );
+            return Map.of("code", 1, "message", "ok", "data", data);
+        } catch (IllegalArgumentException ex) {
+            return Map.of("code", 0, "message", ex.getMessage());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return Map.of("code", 0, "message", "服务器内部错误");
         }
     }
+
 
 
     // 查咨询详情
@@ -106,6 +129,33 @@ public class UserPostController {
         Long newId = newPortServiceImpl.saveNewsPort(post);
 
         return Map.of("id", newId);
+    }
+
+    // 获取类别
+    @GetMapping("/news/category/list")
+    public Map<String, Object> getCatagory() {
+        return Map.of("code", 1, "message", "ok", "data", categoryService.listCategories());
+    }
+
+    // 文件上传
+    @PostMapping(value = "/upload", consumes = "multipart/form-data")
+    public Map<String, Object> uploadImage(@RequestParam("image") MultipartFile image) {
+        Map<String, Object> res = new HashMap<>();
+        if (image == null || image.isEmpty()) {
+            res.put("code", 0);
+            res.put("message", "no file uploaded");
+            return res;
+        }
+        try {
+            String imageUrl = aliyunOSSOperator.upload(image.getBytes(), image.getOriginalFilename());
+            res.put("code", 1);
+            res.put("imageUrl", imageUrl);
+        } catch (Exception e) {
+            res.put("code", 0);
+            res.put("message", "图片上传失败");
+
+        }
+        return res;
     }
 
 }

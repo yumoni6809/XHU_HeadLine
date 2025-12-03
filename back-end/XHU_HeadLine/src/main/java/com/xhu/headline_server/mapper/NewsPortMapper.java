@@ -38,11 +38,14 @@ public interface NewsPortMapper {
 
     Map<String, Object> findNewsById(@Param("id") Long id);
 
+
+
     List<NewsPort> findNews(@Param("keyword") String keyword,
                             @Param("categoryId") Integer categoryId,
                             @Param("sort") String sort,
-                            @Param("size") int size,
-                            @Param("page") int page);
+                            @Param("limit") int limit,
+                            @Param("offset") int offset);
+
 
     int countNews(@Param("keyword") String keyword,
                   @Param("categoryId") Integer categoryId);

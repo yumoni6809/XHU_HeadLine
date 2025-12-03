@@ -40,7 +40,7 @@ public class AliyunOSSOperator {
                 ? originalFilename.substring(originalFilename.lastIndexOf('.')) : "";
         String objectName = dir + "/" + UUID.randomUUID() + ext;
 
-        // endpoint 必须为纯域名；SDK允许带协议，这里统一去掉协议以便拼最终 URL
+
         String normalizedEndpoint = endpoint.replaceFirst("^https?://", "");
 
         OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
