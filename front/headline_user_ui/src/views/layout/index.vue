@@ -1,186 +1,361 @@
-<script lang="ts">
-export default { name: 'AppLayout' }
-</script>
+<script setup>
+import {  HomeFilled, Plus, Setting, User, Search, Filter } from '@element-plus/icons-vue';
+import { ref } from 'vue'
+import { useRouter } from 'vue-router';
 
-<script setup lang="ts">
-import { ref, watch, onMounted, computed } from 'vue'
-import {
-  useRoute,
-  useRouter,
-  type RouteLocationAsPathGeneric,
-  type RouteLocationAsRelativeGeneric,
-} from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { Avatar, Document } from '@element-plus/icons-vue'
-
-// 登录用户信息结构
-interface LoginUser {
-  userId: number
-  userName: string
-  role: number // 0: 管理员, 1: 员工
-  avatarUrl?: string
-}
-
-const route = useRoute()
 const router = useRouter()
-const active = ref(route.path)
+const jumpToNewRouter = (routeInfo)=> {
+  // 更改标题
+  title.value = routeInfo.title
 
-// 当前登录用户
-const currentUser = ref<LoginUser | null>(null)
-// 默认头像
-const DEFAULT_AVATAR = 'http://yumoni.top/upload/Transparent_Akkarin_Transparentized.png'
+  router.push('/layout' + routeInfo.url)
+}
+const searchContent = ref('')
 
-// 从 localStorage 读取 user 信息
-const loadUser = () => {
-  const raw = localStorage.getItem('login_user')
-  if (!raw) {
-    currentUser.value = null
-    return
+// 定义当前导航栏显示的标题
+const title = ref('咨询头条')
+
+// 定义搜索栏
+const filterPanelVisible = ref(false)
+
+// 重置表单
+const resetFilterCondition = ()=> {
+  //TODO
+
+}
+
+// 确认表单
+const confirmFilterCondition = ()=> {
+  //TODO
+
+  // 关闭
+  filterPanelVisible.value = false
+}
+
+// 设置筛选表单的相关元素
+const checkList = ref[
+  {
+    label: '按时间',
+    optionItems: [
+      '全部',
+      '最近一年',
+      '最近一个月',
+      '最近一周'
+    ]
   }
-  try {
-    const parsed = JSON.parse(raw) as LoginUser
-    // 如果 role 是字符串，转为数字以防万一
-    parsed.role =
-      typeof (parsed as any).role === 'string' ? Number((parsed as any).role) : parsed.role
-    currentUser.value = parsed
-    console.log('layout loadUser:', currentUser.value)
-  } catch (e) {
-    console.error('parse login_user error:', e)
-    currentUser.value = null
-  }
-}
-
-// 是否管理员（0 为管理员）
-const isAdmin = computed(() => currentUser.value?.role === 0)
-
-// 初始加载
-onMounted(loadUser)
-
-// 监听路由变化，高亮菜单 + 刷新用户
-watch(
-  () => route.path,
-  (p) => {
-    active.value = p
-    loadUser()
-  },
-)
-
-// 菜单点击
-const go = (index: string | RouteLocationAsRelativeGeneric | RouteLocationAsPathGeneric) => {
-  if (index && route.path !== index) router.push(index)
-}
-
-// 退出登录
-const logout = () => {
-  localStorage.removeItem('auth_token')
-  localStorage.removeItem('login_user')
-  ElMessage.success('已退出登录')
-  router.replace('/login')
-}
+]
 </script>
 
 <template>
-  <el-container class="layout-container-demo" style="min-height: 100vh">
-    <!-- 左侧侧边栏 -->
-    <el-aside width="220px" class="aside">
-      <el-scrollbar>
-        <el-menu :default-active="active" @select="go" class="el-menu-vertical-demo">
-          <el-menu-item index="/user">
-            <el-icon><Avatar /></el-icon>
-            <span>用户管理</span>
-          </el-menu-item>
-        </el-menu>
-        <el-menu :default-active="active" @select="go" class="el-menu-vertical-demo">
-          <el-menu-item index="/port">
-            <el-icon><Document /></el-icon>
-            <span>文章管理</span>
-          </el-menu-item>
-        </el-menu>
-      </el-scrollbar>
-    </el-aside>
+  <div class="entirePage">
+    <!-- 头部，根据route》path来判断 -->
+    <div class="upStreamContent">
+      <div class="headerComponent">
+        <div class="searchComponent">
+          <div style="font-size: 16px;">
+            <strong>
+              {{ title }}
+            </strong>
+          </div>
 
-    <!-- 右侧主区域 -->
-    <el-container>
-      <el-header class="app-header">
-        <div class="title">头条后台管理系统</div>
-        <div class="user-info" v-if="currentUser">
-          <img :src="currentUser.avatarUrl || DEFAULT_AVATAR" class="avatar" alt="avatar" />
-          <span class="user-name">{{ currentUser.userName }}</span>
-          <span class="role-tag">{{ isAdmin ? '管理员' : '员工' }}</span>
-          <el-button type="text" class="logout-btn" @click="logout">退出</el-button>
+          <!-- 只有当当前路径为home的时候才会出现搜索框 -->
+          <div style="" v-show="$route.path.split('/')[$route.path.split('/').length - 1] === 'home'">
+            <el-input
+            type="text"
+            v-model="searchContent"
+            placeholder="搜索资讯、话题、用户..."
+            size="middle"
+            :prefix-icon="Search"
+            class="my-input"
+            style="width: 70vw; border-radius: 10px;"
+            />
+          </div>
         </div>
-        <div class="user-info" v-else>
-          <span class="user-name">未登录</span>
-        </div>
-      </el-header>
 
-      <el-main class="app-main">
-        <!-- 传递 isAdmin 给子页面 -->
-        <router-view :is-admin="isAdmin" />
-      </el-main>
-    </el-container>
-  </el-container>
+        <!-- 条件筛选 -->
+        <!-- 只有当当前路径为home的时候才会出现搜索框 -->
+        <div class="filterComponentContainer" v-show="$route.path.split('/')[$route.path.split('/').length - 1] === 'home'">
+          <el-popover
+            v-model:visible="filterPanelVisible"
+            placement="bottom"
+            width="100vw"
+            trigger="click"
+            class="filterPopover"
+          >
+            <!-- 触发弹层的“筛选图标” -->
+            <template #reference>
+              <el-button circle>
+                <el-icon><Filter /></el-icon>
+              </el-button>
+            </template>
+
+            <div style="background-color: white;" v-show="filterPanelVisible">
+              <div class="filterPanel" >
+                <!-- 筛选条件 -->
+                  <div class="checkTagTitle">
+                    <span>按时间</span>
+                    <span>按收藏</span>
+                    <span>按点赞</span>
+                    <span>按浏览量</span>
+                  </div>
+
+                  <div class="checkTagItems">
+
+                    <div class="timeCheckTag singleFilterContainer">
+                      <el-check-tag :checked="true" type="primary" @change="onChange1">
+                        全部
+                      </el-check-tag>
+                      <el-check-tag :checked="checked1" type="primary" @change="onChange1">
+                        最近一年
+                      </el-check-tag>
+                      <el-check-tag :checked="checked1" type="primary" @change="onChange1">
+                        最近一月
+                      </el-check-tag>
+                      <el-check-tag :checked="checked1" type="primary" @change="onChange1">
+                        最近一周
+                      </el-check-tag>
+                    </div>
+
+                    <div class="attentionCheckTag singleFilterContainer">
+                      <el-check-tag :checked="true" type="primary" @change="onChange1">
+                        全部
+                      </el-check-tag>
+                      <el-check-tag :checked="checked1" type="primary" @change="onChange1">
+                        >100
+                      </el-check-tag>
+                      <el-check-tag :checked="checked1" type="primary" @change="onChange1">
+                        >1000
+                      </el-check-tag>
+                      <el-check-tag :checked="checked1" type="primary" @change="onChange1">
+                        >5000
+                      </el-check-tag>
+                    </div>
+
+                    <div class="likeCheckTag singleFilterContainer">
+                      <el-check-tag :checked="true" type="primary" @change="onChange1">
+                        全部
+                      </el-check-tag>
+                      <el-check-tag :checked="checked1" type="primary" @change="onChange1">
+                        >100
+                      </el-check-tag>
+                      <el-check-tag :checked="checked1" type="primary" @change="onChange1">
+                        >1000
+                      </el-check-tag>
+                      <el-check-tag :checked="checked1" type="primary" @change="onChange1">
+                        >5000
+                      </el-check-tag>
+                    </div>
+
+                    <div class="viewCheckTag singleFilterContainer">
+                      <el-check-tag :checked="true" type="primary" @change="onChange1">
+                        全部
+                      </el-check-tag>
+                      <el-check-tag :checked="checked1" type="primary" @change="onChange1">
+                        >100
+                      </el-check-tag>
+                      <el-check-tag :checked="checked1" type="primary" @change="onChange1">
+                        >1000
+                      </el-check-tag>
+                      <el-check-tag :checked="checked1" type="primary" @change="onChange1">
+                        >5000
+                      </el-check-tag>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="checkOrResetButton">
+                  <el-button @click="resetFilterCondition">重置</el-button>
+                  <el-button type="primary" @click="confirmFilterCondition">确认</el-button>
+                </div>
+
+              </div>
+            </el-popover>
+        </div>
+      </div>
+
+      <div class="routerViewContent">
+        <keep-alive>
+          <router-view></router-view>
+        </keep-alive>
+      </div>
+    </div>
+
+
+
+    <!-- 底部 -->
+
+    <div class="footerNav">
+      <div class="footerContainer">
+        <div class="nav-col"
+          @click="jumpToNewRouter({
+            url: '/home',
+            title: '咨询头条'
+          })">
+            <div :class="{primaryNav:true, activeNav: $route.path.endsWith('/home')}">
+              <el-icon  :size="30"><HomeFilled /></el-icon>
+            </div>
+            <span>
+             首页
+            </span>
+
+          </div>
+          <div class="nav-col"
+          @click="jumpToNewRouter({
+            url: '/addNewArticle',
+            title: '发布新贴'
+            })">
+            <div :class="{primaryNav:true, activeNav: $route.path.endsWith('/addNewArticle')}">
+              <el-icon  :size="30"><Plus /></el-icon>
+            </div>
+            <span>新建帖子</span>
+          </div>
+          <div class="nav-col"
+          @click="jumpToNewRouter({
+            url: '/user',
+            title: '个人信息'
+            })">
+            <div :class="{primaryNav:true, activeNav: $route.path.endsWith('/user')}">
+              <el-icon  :size="30"><User /></el-icon>
+            </div>
+            <span>我的</span>
+          </div>
+          <div class="nav-col"
+          @click="jumpToNewRouter({
+            url: '/setting',
+            title: '设置'
+            })">
+            <div :class="{primaryNav:true, activeNav: $route.path.endsWith('/setting')}">
+              <el-icon :size="30" class="nav-icon"><Setting /></el-icon>
+            </div>
+            <span>设置</span>
+          </div>
+      </div>
+    </div>
+  </div>
 </template>
 
+
 <style scoped>
-.layout-container-demo {
+.entirePage {
+  height: 100vh;
   display: flex;
-  min-height: 100vh;
+  flex-direction: column;
+}
+/* 配置顶部样式 */
+/* ################################################################## */
+/* ################################################################## */
+/* ################################################################## */
+.headerComponent {
+  padding: 20px 10px 20px 10px;
+  background-color: white;
+  border-bottom: 2px solid whitesmoke;
 }
 
-.app-header {
+.searchComponent {
   display: flex;
-  justify-content: space-between;
+  flex-direction: row;
   align-items: center;
-  height: 64px;
-  padding: 0 16px;
-  background: linear-gradient(90deg, #00547d, #00aaa0);
-  color: #fff;
-}
+  column-gap: 20px;
 
-.user-info {
+}
+.filterComponentContainer {
+  margin-top: 15px;
+}
+.upStreamContent {
   display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  background-color: whitesmoke;
+}
+.my-input .el-input__wrapper {
+  background-color: #f5f5f5;  /* 浅灰色背景 */
+}
+.conditionalQuery {
+  margin-top: 20px;
+  padding-left: 20px;
+}
+
+/* 配置条件筛选的样式 */
+.filterPanel {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  padding-top: 20px;
+  background-color: white;
   align-items: center;
-  gap: 8px;
+}
+.checkTagTitle {
+  font-weight: bold;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 60px;
+}
+.checkTagItems {
+  display: flex;
+  flex-direction: column;
+  overflow: scroll;
+  gap: 10px
 }
 
-.avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
+.singleFilterContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 20px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  white-space: nowrap;
+}
+.checkOrResetButton {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: row;
+  align-items: end;
+  justify-content: end;
+  gap: 20px;
+  background-color: white;
 }
 
-.user-name {
-  font-size: 14px;
+
+.routerViewContent {
+  flex: 1 1 auto;
+  min-height: 0;   /* 非常关键，允许子元素内部滚动 */
+  /* width: 100%;
+  max-width: 100%; */
 }
 
-.role-tag {
-  font-size: 12px;
-  padding: 2px 6px;
+/* 配置底部样式 */
+/* ################################################################## */
+/* ################################################################## */
+/* ################################################################## */
+.footerNav {
+  display: flex;
+  justify-content: center;
+  padding-top: 10px;
+  border-top: 2px solid #F0EBEB;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.2);
 }
-
-.logout-btn {
-  color: #fff;
-  padding: 0 4px;
+.primaryNav {
+  padding: 0 8px 0 8px;
+  border-radius: 40px;
 }
+.activeNav {
+  background-color: rgb(238, 231, 30);
 
-.app-main {
-  padding: 16px;
-  box-sizing: border-box;
-  min-height: calc(100vh - 64px);
 }
-
-.aside {
-  background: #f7f9fb;
-  border-right: 1px solid #e6e6e6;
+.footerContainer {
+  display: flex;
+  flex-direction: row;
+  gap: 15vw;
 }
-
-@media (max-width: 768px) {
-  .aside {
-    display: none;
-  }
+.nav-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.nav-col :hover {
+  cursor: pointer;
 }
 </style>
