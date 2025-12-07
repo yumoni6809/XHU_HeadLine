@@ -145,6 +145,10 @@ import { ElMessage } from 'element-plus';
 import instance from '@/utils/axios/main.js'
 import { useRouter } from 'vue-router';
 
+defineOptions({
+  name: 'AddArticlePage'
+})
+
 const router = useRouter()
 const articleForm = ref({
   title: '',
@@ -362,26 +366,26 @@ onMounted(()=> {
 
   // 并且还要从本地取出数据
   const getImagesInfo = localStorage.getItem('savedCoverImageUploadInfo')
-  if (getImagesInfo) {
+  if (getImagesInfo !== null && getImagesInfo !== undefined) {
     // 设置coverImageUploadInfo
     coverImageUploadInfo.value = JSON.parse(getImagesInfo)
   }
 
   const getArticleInfo = localStorage.getItem('savedArticleFormInfo')
-  if (getArticleInfo) {
+  if (getArticleInfo !== null && getArticleInfo !== undefined) {
     // 设置articleForm
     articleForm.value = JSON.parse(getArticleInfo)
   }
 
   // 获取类别(正式版的时候需要换掉)
-  // getAllCategoriesOptions()
+  getAllCategoriesOptions()
 })
 
 // 获取类别
 const getAllCategoriesOptions = async ()=> {
   try{
-    const res = await instance.get('inputUrl')
-    if (res.data.code === 1) {
+    const res = await instance.get('/user/news/category/list')
+    if (res.data.code === 0) {
       // 类别进行赋值
       categoryOptions.value = res.data.data
     } else {

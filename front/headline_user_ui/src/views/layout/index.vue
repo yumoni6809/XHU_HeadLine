@@ -2,9 +2,23 @@
 import {  HomeFilled, Plus, Setting, User, Search, Filter } from '@element-plus/icons-vue';
 import { ref } from 'vue'
 import { useRouter } from 'vue-router';
+import { useAnimationTransitionStore } from '@/stores';
+import { storeToRefs } from 'pinia';
+
+defineOptions({
+  name: 'LayoutPage'
+})
+
+// 设置动画的过度方向
+const animationTransitionStore = useAnimationTransitionStore()
+const { transitionDirection } = storeToRefs(animationTransitionStore)
+const { setTransitionDirection } = animationTransitionStore
 
 const router = useRouter()
 const jumpToNewRouter = (routeInfo)=> {
+  // 方向改成forward
+  setTransitionDirection('forward')
+
   // 更改标题
   title.value = routeInfo.title
 
@@ -174,9 +188,14 @@ const checkList = ref[
       </div>
 
       <div class="routerViewContent">
-        <keep-alive>
-          <router-view></router-view>
-        </keep-alive>
+          <router-view v-slot="{ Component }">
+            <!-- 插入动画 -->
+            <Transition :name="transitionDirection" mode="out-in">
+              <keep-alive>
+                <component :is="Component" />
+              </keep-alive>
+            </Transition>
+          </router-view>
       </div>
     </div>
 
@@ -357,5 +376,75 @@ const checkList = ref[
 }
 .nav-col :hover {
   cursor: pointer;
+}
+
+/* 页面切换的动画效果 */
+/* 前进的动画效果 */
+/* ################################################################## */
+/* ################################################################## */
+/* ################################################################## */
+/* 进入 & 离开时的过渡属性 */
+.forward-enter-active,
+.forward-leave-active {
+  transition: all 0.5s ease;
+}
+
+/* 进入前的初始状态 */
+.forward-enter-from {
+  opacity: 0.2;
+  transform: translateX(300px);
+}
+
+/* 进入后的结束状态 */
+.forward-enter-to {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* 离开前的初始状态 */
+.forward-leave-from {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* 离开后的结束状态 */
+.forward-leave-to {
+  opacity: 0.2;
+  transform: translateX(-300px);
+}
+
+/* 页面切换的动画效果 */
+/* 返回的动画效果 */
+/* ################################################################## */
+/* ################################################################## */
+/* ################################################################## */
+/* 进入 & 离开时的过渡属性 */
+.backward-enter-active,
+.backward-leave-active {
+  transition: all 0.5s ease;
+}
+
+/* 进入前的初始状态 */
+.backward-enter-from {
+  opacity: 0.2;
+  transform: translateX(-300px);
+}
+
+/* 进入后的结束状态 */
+.backward-enter-to {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* 离开前的初始状态 */
+.backward-leave-from {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* 离开后的结束状态 */
+.backward-leave-to {
+  opacity: 0.2;
+  transform: translateX(300px);
 }
 </style>

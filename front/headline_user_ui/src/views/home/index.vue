@@ -4,6 +4,21 @@ import Heart from '@/asset/img/Love.svg'
 import Loved from '@/asset/img/lamb-love.svg'
 import { onMounted, ref } from 'vue'
 import { Comment, View } from '@element-plus/icons-vue'
+import { useRouter, useRoute } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { useAnimationTransitionStore } from '@/stores'
+
+defineOptions({
+  name: 'HomePage'
+})
+
+const router = useRouter()
+const route = useRoute()
+
+// 设置动画的过度方向
+const animationTransitionStore = useAnimationTransitionStore()
+const { transitionDirection } = storeToRefs(animationTransitionStore)
+const { setTransitionDirection } = animationTransitionStore
 
 const articleList = ref([
 {
@@ -102,6 +117,20 @@ const articleList = ref([
   }
 ])
 
+
+// 点击帖子标题和摘要跳转到帖子首页
+const jumpToArticleDetail = (articleId)=> {
+  // 前进动画
+  setTransitionDirection('forward')
+
+  router.push({
+    path: '/article',
+    // query: {
+    //   id:articleId
+    // }
+  })
+}
+
 // 动态计算gap
 const containerRef = ref(null)
 const gapWidth = ref(null)
@@ -112,15 +141,14 @@ const isLiked = ref(false)
 
 // 定义处理点赞函数
 const handleLike = ()=> {
-  // 暂时就写成转换成喜欢
-  isLiked.value = true
+  if (isLiked.value) {
+    isLiked.value = false
+  }
+  else {
+    isLiked.value = true
+  }
 }
 
-// 定义取消点赞
-const cancelLike = ()=> {
-  // 暂时写成取消红心即可
-  isLiked.value = false
-}
 
 onMounted(()=> {
   // gapWidth.value = coverImageDisplayRef.value.offsetWidth
@@ -150,7 +178,7 @@ onMounted(()=> {
     -->
     <div class="singleArticle" v-for="article in articleList" :key="article.id">
       <!-- 发帖人信息展示 -->
-      <div class="userInfoContainer">
+      <div class="userInfoContainer" @click="jumpToArticleDetail()">
         <div class="authorImage">
           <img style="width: 40px; height: 40px; object-fit: cover; border-radius: 999px;" :src="article.avatarUrl" alt="用户头像">
         </div>
@@ -169,17 +197,17 @@ onMounted(()=> {
       </div>
 
       <!-- 标题展示 -->
-      <div class="articleTitleContainer">
+      <div class="articleTitleContainer" @click="jumpToArticleDetail()">
         {{ article.title }}
       </div>
 
       <!-- 摘要展示 -->
-      <div class="summaryContailer">
+      <div class="summaryContailer" @click="jumpToArticleDetail()">
         {{ article.summary }}
       </div>
 
       <!-- 封面展示 -->
-      <div ref="coverImagesDisplayRef" class="coverImageDisplay">
+      <div ref="coverImagesDisplayRef" class="coverImageDisplay" @click="checkTheAllImage(article.coverImages)">
 
         <!-- 最后一张图片的话添加一个类，这个类可以让内部元素进行堆叠 -->
         <div
@@ -187,7 +215,16 @@ onMounted(()=> {
           v-for="(image, index) in (article.coverImages.length > 3? article.coverImages.slice(0, 3) : article.coverImages)"
           :key="image"
         >
-          <img class="previewCoversInHome" :src="image" alt="封面图片">
+          <!-- <img class="previewCoversInHome" :src="image" alt="封面图片"> -->
+          <el-image
+            class="previewCoversInHome"
+            :src="image"
+            fit="cover"
+            :preview-src-list="article.coverImages"
+            :initial-index="index"
+            hide-on-click-modal="true"
+            show-progress="true"
+          />
           <div class="additionalInfo" v-show="index === 2 && article.coverImages.length > 3? true: false">
             <span>共{{ article.coverImages.length }}张</span>
           </div>
@@ -202,9 +239,9 @@ onMounted(()=> {
         </div>
 
         <div class="likedAndCommentComponent">
-          <div class="componentsCommonStyle">
-            <img v-if="!isLiked" :src="Heart" style="width: 16px; height: 16px;" alt="" @click="handleLike">
-            <img v-else :src="Loved" style="width: 16px; height: 16px;" alt="" @click="cancelLike">
+          <div class="componentsCommonStyle" @click="handleLike" >
+            <img v-if="!isLiked" :src="Heart" style="width: 16px; height: 16px;" alt="" >
+            <img v-else :src="Loved" style="width: 16px; height: 16px;" alt="">
             <span>{{ article.likeCount }}</span>
           </div>
 

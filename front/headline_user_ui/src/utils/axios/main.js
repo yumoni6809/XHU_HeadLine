@@ -2,11 +2,11 @@ import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
 
-// 1. 创建 axios 实例
-const http= axios.create({
-  // 所有请求都会以 /api 开头，通过 Vite 代理转发到后端 http://localhost:7111
-  baseURL: '/api',
-  timeout: 10000,
+const baseURL = 'http://localhost:8080'
+
+const instance = axios.create({
+  baseURL: baseURL,
+  timeout: 1000,
 })
 
 // 请求拦截器：在每次请求前，自动从 localStorage 读取 token，放到请求头中
@@ -44,7 +44,11 @@ http.interceptors.response.use(
         duration: 5 * 1000
       })
     }
-    return Promise.reject(error)
+    else {
+      return config
+    }
+  }, (err)=> {
+    Promise.reject(err)
   }
 )
 

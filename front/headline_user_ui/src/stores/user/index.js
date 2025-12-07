@@ -8,7 +8,8 @@ export const useUserStore = defineStore('UserInfo', ()=> {
     username: '',
     nickName: '',
     avatarUrl: '',
-    role: null
+    role: null,
+    phone: ''
   })
 
   // 重置用户信息
@@ -30,10 +31,12 @@ export const useUserStore = defineStore('UserInfo', ()=> {
 
   // 设置用户信息（不包括token），通常用于修改账户属性时
   const modifyUserInfo = (userInfoForm)=> {
+    userInfo.value.id = userInfoForm.id
     userInfo.value.username = userInfoForm.username
     userInfo.value.nickName = userInfoForm.nickName
     userInfo.value.avatarUrl = userInfoForm.avatarUrl
     userInfo.value.role = userInfoForm.role
+    userInfo.value.phone = userInfoForm.phone
   }
   return {
     token,
