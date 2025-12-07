@@ -19,7 +19,11 @@ public class LoginController {
     @Autowired
     private UserService userService;
 
-
+    /**
+     *
+     * @param userDTO
+     * @return
+     */
     @PostMapping("/admin/login")
     public Map<String, Object> login(@RequestBody  UserDTO userDTO) {
         log.info("登录请求: {}", userDTO);

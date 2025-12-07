@@ -46,6 +46,7 @@ public class TokenFilter implements Filter {
             JwtUtils.parseJWT(jwt);
         } catch (Exception e) {
             log.info("token 解析失败, 拒绝访问, uri={}", uri);
+
             response.setStatus(HttpStatus.SC_UNAUTHORIZED);
             return;
         }

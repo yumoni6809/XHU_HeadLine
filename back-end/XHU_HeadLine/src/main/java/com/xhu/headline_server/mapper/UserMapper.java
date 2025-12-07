@@ -29,7 +29,13 @@ public interface UserMapper {
      */
     int delUserById(@Param("id") Long id);
 
+    /**
+     * 获取所有用户
+     */
     List<User> getAllUsers();
 
-     User selectNameAndPassword(String username, String password);
+    /**
+     * 根据用户名和密码查询用户
+     */
+    User selectNameAndPassword(String username, String password);
  }

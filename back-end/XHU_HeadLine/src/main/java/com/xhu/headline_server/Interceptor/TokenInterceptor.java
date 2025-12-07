@@ -26,6 +26,14 @@ public class TokenInterceptor implements HandlerInterceptor {
             log.info("登录请求，直接放行: {}", url);
             return true;
         }
+        if (url.contains("/user/login")) {
+            log.info("登录请求，直接放行: {}", url);
+            return true;
+        }
+        if (url.contains("/user/register")) {
+            log.info("注册请求，直接放行: {}", url);
+            return true;
+        }
 
         // 3. 从请求头获取 token
         String jwt = request.getHeader("token");

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xhu.headline_server.mapper.CategoryMapper">
+    <resultMap id="NewsCategoryResult" type="com.xhu.headline_server.entity.NewsCategory">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+    </resultMap>
+
+    <select id="selectAll" resultType="com.xhu.headline_server.entity.NewsCategory">
+        SELECT id, name
+        FROM news_category
+        ORDER BY id ASC
+    </select>
+</mapper>

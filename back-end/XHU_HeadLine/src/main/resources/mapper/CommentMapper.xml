@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xhu.headline_server.mapper.CommentMapper">
+
+    <resultMap id="CommentResultMap" type="com.xhu.headline_server.entity.Comment">
+        <id column="id" property="id"/>
+        <result column="post_id" property="postId"/>
+        <result column="user_id" property="userId"/>
+        <result column="nick_name" property="nickName"/>
+        <result column="avatar_url" property="avatarUrl"/>
+        <result column="content" property="content"/>
+        <result column="parent_id" property="parentId"/>
+        <result column="like_count" property="likeCount"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <select id="listCommentsByPostId" resultMap="CommentResultMap">
+        SELECT * FROM comments
+        WHERE post_id = #{postId}
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="countCommentsByPostId" resultType="int">
+        SELECT COUNT(*) FROM comments
+        WHERE post_id = #{postId}
+    </select>
+
+    <insert id="insertComment" parameterType="com.xhu.headline_server.entity.Comment">
+        INSERT INTO comments (post_id, user_id, content, parent_id, create_time)
+        VALUES (#{postId}, #{userId}, #{content}, #{parentId}, NOW())
+    </insert>
+
+
+
+</mapper>

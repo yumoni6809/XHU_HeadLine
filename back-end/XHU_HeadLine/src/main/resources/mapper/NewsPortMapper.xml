@@ -4,158 +4,130 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.xhu.headline_server.mapper.NewsPortMapper">
 
-    <resultMap id="NewsPortResultMap" type="com.xhu.headline_server.entity.newsPort">
-        <id     column="id"            property="id"/>
-        <result column="author_id"     property="authorId"/>
-        <result column="category_id"   property="categoryId"/>
-        <result column="title"         property="title"/>
-        <result column="content"       property="content"/>
-        <result column="cover_images"  property="coverImages"/>
-        <result column="status"        property="status"/>
-        <result column="view_count"    property="viewCount"/>
-        <result column="like_count"    property="likeCount"/>
+    <resultMap id="NewsPortResultMap" type="com.xhu.headline_server.entity.NewsPort">
+        <id column="id" property="id"/>
+        <result column="author_id" property="authorId"/>
+        <result column="category_id" property="categoryId"/>
+        <result column="title" property="title"/>
+        <result column="content" property="content"/>
+        <result column="cover_images" property="coverImages"/>
+        <result column="status" property="status"/>
+        <result column="view_count" property="viewCount"/>
+        <result column="like_count" property="likeCount"/>
         <result column="comment_count" property="commentCount"/>
-        <result column="source"        property="source"/>
-        <result column="create_time"   property="createTime"/>
-        <result column="update_time"   property="updateTime"/>
-        <result column="deleted"       property="deleted"/>
+        <result column="source" property="source"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="deleted" property="deleted"/>
     </resultMap>
 
-    <sql id="Base_Column_List">
-        id,
-        author_id,
-        category_id,
-        title,
-        content,
-        cover_images,
-        status,
-        view_count,
-        like_count,
-        comment_count,
-        source,
-        create_time,
-        update_time,
-        deleted
+    <sql id="Base_Columns">
+        id,author_id,category_id,title,content,cover_images,status,
+        view_count,like_count,comment_count,source,create_time,update_time,deleted
     </sql>
 
     <select id="getById" parameterType="long" resultMap="NewsPortResultMap">
-        SELECT
-        <include refid="Base_Column_List"/>
-        FROM news_port
-        WHERE id = #{id}
-        AND deleted = 0
+        SELECT <include refid="Base_Columns"/> FROM news_port
+        WHERE id = #{id} AND deleted = 0
     </select>
 
     <select id="listAll" resultMap="NewsPortResultMap">
-        SELECT
-        <include refid="Base_Column_List"/>
-        FROM news_port
+        SELECT <include refid="Base_Columns"/> FROM news_port
         WHERE deleted = 0
-        ORDER BY create_time DESC
     </select>
 
     <select id="listByAuthorId" parameterType="long" resultMap="NewsPortResultMap">
-        SELECT
-        <include refid="Base_Column_List"/>
-        FROM news_port
-        WHERE deleted = 0
-        AND author_id = #{authorId}
-        ORDER BY create_time DESC
+        SELECT <include refid="Base_Columns"/> FROM news_port
+        WHERE author_id = #{authorId} AND deleted = 0
     </select>
 
-    <insert id="insert" parameterType="com.xhu.headline_server.entity.newsPort"
-            useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO news_port (
-            author_id,
-            category_id,
-            title,
-            content,
-            cover_images,
-            status,
-            view_count,
-            like_count,
-            comment_count,
-            source,
-            create_time,
-            update_time,
-            deleted
-        )
-        VALUES (
-                   #{authorId},
-                   #{categoryId},
-                   #{title},
-                   #{content},
-                   #{coverImages},
-                   #{status},
-                   #{viewCount},
-                   #{likeCount},
-                   #{commentCount},
-                   #{source},
-                   NOW(),
-                   NOW(),
-                   #{deleted}
-               )
+    <insert id="insert" parameterType="com.xhu.headline_server.entity.NewsPort">
+        INSERT INTO news_port (author_id,category_id,title,content,cover_images,status,
+                               view_count,like_count,comment_count,source,create_time,update_time,deleted)
+        VALUES (#{authorId},#{categoryId},#{title},#{content},#{coverImages},#{status},
+                #{viewCount},#{likeCount},#{commentCount},#{source},NOW(),NOW(),#{deleted})
     </insert>
 
-    <update id="update" parameterType="com.xhu.headline_server.entity.newsPort">
+    <update id="update" parameterType="com.xhu.headline_server.entity.NewsPort">
         UPDATE news_port
-        SET
-            author_id     = #{authorId},
-            category_id   = #{categoryId},
-            title         = #{title},
-            content       = #{content},
-            cover_images  = #{coverImages},
-            status        = #{status},
-            view_count    = #{viewCount},
-            like_count    = #{likeCount},
-            comment_count = #{commentCount},
-            source        = #{source},
-            update_time   = NOW()
-        WHERE id = #{id}
-          AND deleted = 0
-    </update>
-
-    <update id="logicDeleteById" parameterType="long">
-        UPDATE news_port
-        SET deleted = 1,
+        SET title = #{title},
+            content = #{content},
+            cover_images = #{coverImages},
+            category_id = #{categoryId},
+            status = #{status},
             update_time = NOW()
-        WHERE id = #{id}
+        WHERE id = #{id} AND deleted = 0
     </update>
 
-    <delete id="deleteById" parameterType="long">
-        DELETE FROM news_port
-        WHERE id = #{id}
-    </delete>
+    <update id="deleteById" parameterType="long">
+        UPDATE news_port SET deleted = 1, update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
 
     <update id="incrViewCount" parameterType="long">
-        UPDATE news_port
-        SET view_count = view_count + 1
-        WHERE id = #{id}
-          AND deleted = 0
+        UPDATE news_port SET view_count = view_count + 1
+        WHERE id = #{id} AND deleted = 0
     </update>
 
     <update id="incrLikeCount" parameterType="long">
-        UPDATE news_port
-        SET like_count = like_count + 1
-        WHERE id = #{id}
-          AND deleted = 0
+        UPDATE news_port SET like_count = like_count + 1
+        WHERE id = #{id} AND deleted = 0
     </update>
 
     <update id="decrLikeCount" parameterType="long">
         UPDATE news_port
-        SET like_count = CASE
-                             WHEN like_count > 0 THEN like_count - 1
-                             ELSE 0
-            END
-        WHERE id = #{id}
-          AND deleted = 0
+        SET like_count = CASE WHEN like_count > 0 THEN like_count - 1 ELSE 0 END
+        WHERE id = #{id} AND deleted = 0
     </update>
 
     <update id="incrCommentCount" parameterType="long">
-        UPDATE news_port
-        SET comment_count = comment_count + 1
-        WHERE id = #{id}
-          AND deleted = 0
+        UPDATE news_port SET comment_count = comment_count + 1
+        WHERE id = #{id} AND deleted = 0
     </update>
+
+    <select id="getViewCount" parameterType="long" resultType="int">
+        SELECT IFNULL((
+                          SELECT view_count FROM news_port
+                          WHERE id = #{id} AND deleted = 0
+                      ), 0) AS view_count
+    </select>
+
+    <select id="getLikeCount" parameterType="long" resultType="int">
+        SELECT IFNULL((
+                          SELECT like_count FROM news_port
+                          WHERE id = #{id} AND deleted = 0
+                      ), 0) AS like_count
+    </select>
+
+
+    <select id="findNewsById" parameterType="long" resultType="map">
+        SELECT <include refid="Base_Columns"/> FROM news_port
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="findNews" parameterType="map" resultType="com.xhu.headline_server.entity.NewsPort">
+        SELECT id,author_id,category_id,title,content,cover_images,status,
+        view_count,like_count,comment_count,source,create_time,update_time,deleted
+        FROM news_port
+        WHERE deleted = 0
+        ORDER BY
+        <choose>
+            <when test="sort == 'hot'">view_count DESC</when>
+            <otherwise>create_time DESC</otherwise>
+        </choose>
+        LIMIT #{limit}
+        OFFSET #{offset}
+    </select>
+
+    <select id="countNews" resultType="int">
+        SELECT COUNT(*) FROM news_port
+        WHERE deleted = 0
+        <if test="keyword != null and keyword != ''">
+            AND title LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        <if test="categoryId != null">
+            AND category_id = #{categoryId}
+        </if>
+    </select>
 
 </mapper>

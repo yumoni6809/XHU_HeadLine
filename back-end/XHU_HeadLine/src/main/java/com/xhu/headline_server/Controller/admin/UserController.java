@@ -25,6 +25,18 @@ public class UserController {
     @Autowired
     private AliyunOSSOperator aliyunOSSOperator;
 
+
+    /**
+     *
+     * 大部分代码逻辑和帖子类一样 就不详细说明了
+     *
+     */
+
+
+
+
+
+
     // 增：POST /admin/user/add
     @PostMapping("/add")
     public Map<String, Object> addUser(@RequestBody User user) {
@@ -132,10 +144,10 @@ public class UserController {
             int page = getIntParam(params, "page", 1);
             int size = getIntParam(params, "size", 10);
 
-            // 1. 先查出所有用户
+            // 先查出所有用户
             List<User> all = userService.getAllUsers();
 
-            // 2. userName 模糊匹配，其它等值匹配
+            // userName 模糊匹配，其它等值匹配
             Map<String, String> contains = new HashMap<>();
             contains.put("userName", userName);
 
@@ -147,7 +159,8 @@ public class UserController {
                 equals.put("phone", phone);
             }
 
-            // 3. 使用 util1 统一做过滤 + 分页
+            // 使用 util1 统一做过滤 + 分页
+            // 这里不需要弄懂
             Map<String, Object> data = util1.filterAndPage(all, contains, equals, page, size);
 
             res.put("code", 1);

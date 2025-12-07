@@ -56,6 +56,7 @@
 </template>
 
 <script setup lang="ts">
+import request from '@/utils/axios/main.js'
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import AuroraBackground from '@/components/AuroraBackground.vue'
@@ -82,7 +83,7 @@ const onNameSubmit = (val: string) => {
   }
 }
 
-const onSubmit = () => {
+const onSubmit = async () => {
   if (!name.value.trim()) {
     ElMessage.warning('请先填写昵称')
     return
@@ -103,9 +104,26 @@ const onSubmit = () => {
     ElMessage.warning('请输入手机号')
     return
   }
+  // 管理端一样的逻辑
+  try {
+    // 使用 axios 发送请求
+    const res = await request.post('/user/register', {
+      userName: name.value,
+      password: password.value,
+      phone: phone.value,
+    })
 
-  ElMessage.success('注册成功，快去登录吧！')
-  router.push('/login')
+    if (res.code === 1) {
+
+      ElMessage.success('注册成功！')
+      router.push('/login')
+    } else {
+      ElMessage.error(res.message || '注册失败')
+    }
+  } catch (err) {
+    console.error(err)
+    ElMessage.error('请求失败')
+  }
 }
 
 const goLogin = () => {

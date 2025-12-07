@@ -1,1 +1,85 @@
-*.properties
+# Maven / Java
+/target/
+!.mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+*.log
+
+# IntelliJ IDEA
+/.idea/
+/*.iml
+/.idea_modules/
+out/
+
+# VS Code
+.vscode/
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# macOS / Windows
+.DS_Store
+Thumbs.db
+
+# Build tools
+/build/
+/.gradle/
+/bin/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Node (if present)
+node_modules/
+
+# IDE / editor backups
+*~ 
+*.swp
+*.swo
+
+# Logs and runtime files
+logs/
+*.log
+pids/
+*.pid
+*.seed
+*.dump
+
+# Certificates, keystores, secrets
+*.jks
+*.keystore
+*.p12
+*.pem
+*.crt
+*.key
+
+# Environment files
+.env
+.env.*
+secrets.yml
+.credentials
+
+# Spring / application config (ignore local sensitive config)
+src/main/resources/application.properties
+src/main/resources/application-*.properties
+
+# Database files
+*.db
+*.sqlite
+*.h2.db
+
+# Coverage reports
+coverage/
+*.lcov
+jacoco.exec
+
+# OS-specific
+Thumbs.db
+ehthumbs.db
+
+# Git-crypt / other
+*.secret

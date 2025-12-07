@@ -2,7 +2,6 @@ package com.xhu.headline_server.service;
 
 import com.xhu.headline_server.entity.LoginInfo;
 import com.xhu.headline_server.entity.User;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 

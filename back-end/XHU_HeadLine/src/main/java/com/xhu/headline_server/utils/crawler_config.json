@@ -1,0 +1,9 @@
+{
+  "JAVA_ENDPOINT": "http://localhost:7111/admin/news/import",
+  "AUTH_LOGIN_URL": "http://localhost:7111/admin/login",
+  "AUTH_USERNAME_FIELD": "userName",
+  "AUTH_PASSWORD_FIELD": "password",
+  "AUTH_TOKEN": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY0MjgxNjYzfQ.5ErjgSyFEVSj011-pni3Ft8YspZ2SVUfUIqOhJdB7jo",
+  "BATCH_SIZE": 10,
+  "USER_AGENT": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
+}

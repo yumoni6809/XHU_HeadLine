@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class newsPort {
+public class NewsPort {
     private long id;
     private long authorId;
     private int categoryId;

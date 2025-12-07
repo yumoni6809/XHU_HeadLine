@@ -1,6 +1,6 @@
 package com.xhu.headline_server.service.impl;
 
-import com.xhu.headline_server.entity.newsPort;
+import com.xhu.headline_server.entity.NewsPort;
 import com.xhu.headline_server.mapper.NewsPortMapper;
 import com.xhu.headline_server.service.NewPortService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,25 +18,26 @@ public class NewPortServiceImpl implements NewPortService {
      * 新增或更新新闻
      */
     @Override
-    public void saveNewsPort(newsPort newsPortDTO) {
+    public Long saveNewsPort(NewsPort newsPortDTO) {
         if (newsPortDTO == null) {
-            return;
+            return null;
         }
         Long id = newsPortDTO.getId();
         if (id == null || id == 0) {
-            // 新增
+            // 如果没有传入id就新增一个帖子
             newsPortMapper.insert(newsPortDTO);
         } else {
-            // 更新
+            // 如果传入id则对已有的帖子更新
             newsPortMapper.update(newsPortDTO);
         }
+        return id;
     }
 
     /**
      * 根据 id 查询新闻
      */
     @Override
-    public newsPort getNewsPortById(Long id) {
+    public NewsPort getNewsPortById(Long id) {
         if (id == null) {
             return null;
         }
@@ -55,9 +56,12 @@ public class NewPortServiceImpl implements NewPortService {
         return affected > 0;
     }
 
+    /**
+     * 查询所有帖子
+     */
     @Override
-    public List<newsPort> getAllNewsPorts() {
-        List<newsPort> ports = newsPortMapper.listAll();
+    public List<NewsPort> getAllNewsPorts() {
+        List<NewsPort> ports = newsPortMapper.listAll();
         return ports;
     }
 }

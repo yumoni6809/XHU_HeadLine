@@ -63,9 +63,35 @@ const routes = [
 
 ]
 
+
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
 })
+
+router.beforeEach((to, from, next) => {
+  // 定义不需要登录就能访问的页面路径
+  const whiteList = ['/login', '/register']
+
+  const token = localStorage.getItem('token')
+
+  if (token) {
+    // 如果已登录，且要去登录页、注册页或根路径
+    if (whiteList.includes(to.path) || to.path === '/') {
+      next('/layout/home')
+    } else {
+      next() // 放行去其他页面
+    }
+  } else {
+    // 如果未登录
+    if (whiteList.includes(to.path)) {
+      next() // 去的是白名单页面
+    } else {
+      next('/login')
+    }
+  }
+})
+
 
 export default router

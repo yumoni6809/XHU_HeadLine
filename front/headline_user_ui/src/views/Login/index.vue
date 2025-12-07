@@ -43,8 +43,9 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import request from '@/utils/axios/main.js'
+import { useRouter ,useRoute} from 'vue-router'
+import { ref , reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import AuroraBackground from '@/components/AuroraBackground.vue'
 import VanishingInput from '@/components/inspira/VanishingInput.vue'
@@ -88,29 +89,28 @@ function onVanishingSubmitPassword(val: string) {
 // 点击登录按钮
 const onSubmit = async () => {
   try {
-    const resp = await fetch('/api/admin/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userName: form.userName,
-        password: form.password,
-      }),
+    const res = await request.post('/user/login', {
+      userName: form.userName,
+      password: form.password,
     })
-    const json = await resp.json()
-    console.log('login response:', json)
 
-    if (json.code != 1 || !json.data?.token) {
-      ElMessage.error(json.message || '用户名或密码错误')
+    // 检查业务状态码
+    if (res.code !== 1) {
+      ElMessage.error(res.message || '用户名或密码错误')
       return
     }
 
-    const loginInfo = json.data
+    const loginInfo = res.data
+
+    if (!loginInfo || !loginInfo.token) {
+      ElMessage.error('登录异常：未获取到 Token')
+      return
+    }
 
     const roleNumber = typeof loginInfo.role === 'string' ? Number(loginInfo.role) : loginInfo.role
 
-    localStorage.setItem('auth_token', loginInfo.token)
+    localStorage.setItem('token', loginInfo.token)
+
     localStorage.setItem(
       'login_user',
       JSON.stringify({
@@ -120,14 +120,14 @@ const onSubmit = async () => {
         avatarUrl: loginInfo.avatarUrl || '',
       }),
     )
-    console.log('after setItem auth_token:', localStorage.getItem('auth_token'))
 
     ElMessage.success('登录成功')
-    const redirect = (route.query.redirect as string) || '/user'
+
+    // 4. 跳转到系统首页
+    const redirect = (route.query.redirect as string) || '/layout/home'
     router.replace(redirect)
   } catch (err) {
     console.error(err)
-    ElMessage.error('登录失败，请检查网络或服务器')
   }
 }
 </script>
