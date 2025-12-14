@@ -1,0 +1,41 @@
+/* === 滑动效果 (Slide) === */
+.forward-enter-active,
+.forward-leave-active,
+.backward-enter-active,
+.backward-leave-active {
+  transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
+  position: absolute;
+  width: 100%;
+  height: 100%; /* 确保填满容器 */
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  backface-visibility: hidden; /* 硬件加速 */
+}
+
+/* Forward: 进阶层级 (如 首页 -> 详情) */
+.forward-enter-from { opacity: 0; transform: translateX(100%); z-index: 10; }
+.forward-enter-to { opacity: 1; transform: translateX(0); z-index: 10; }
+.forward-leave-from { opacity: 1; transform: translateX(0); z-index: 1; }
+.forward-leave-to { opacity: 0.5; transform: translateX(-30%); z-index: 1; }
+
+/* Backward: 返回层级 (如 详情 -> 首页) */
+.backward-enter-from { opacity: 0.5; transform: translateX(-30%); z-index: 1; }
+.backward-enter-to { opacity: 1; transform: translateX(0); z-index: 1; }
+.backward-leave-from { opacity: 1; transform: translateX(0); z-index: 10; }
+.backward-leave-to { opacity: 0; transform: translateX(100%); z-index: 10; }
+
+/* === 淡入淡出效果 (Fade) === */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}

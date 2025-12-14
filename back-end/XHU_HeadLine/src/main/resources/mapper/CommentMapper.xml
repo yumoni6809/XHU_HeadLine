@@ -16,11 +16,20 @@
         <result column="create_time" property="createTime"/>
     </resultMap>
 
-    <select id="listCommentsByPostId" resultMap="CommentResultMap">
-        SELECT * FROM comments
+    <select id="listCommentsByPostId" resultType="com.xhu.headline_server.entity.Comment" parameterType="map">
+        SELECT
+            id,
+            user_id     AS userId,
+            post_id     AS postId,
+            content,
+            parent_id   AS parentId,
+            status,
+            create_time AS createTime,
+            like_count  AS likeCount
+        FROM comments
         WHERE post_id = #{postId}
         ORDER BY create_time DESC
-        LIMIT #{offset}, #{size}
+            LIMIT #{offset}, #{size}
     </select>
 
     <select id="countCommentsByPostId" resultType="int">

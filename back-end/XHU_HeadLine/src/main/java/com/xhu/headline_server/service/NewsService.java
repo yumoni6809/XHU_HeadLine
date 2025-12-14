@@ -9,12 +9,14 @@ public interface NewsService {
 
     int addViewCount(Long id);
 
+    Map<String, Object> updateLikeCount(Long id, boolean liked);
+
     Map<String, Object> addLikeCount(Long id);
 
     Map<String, Object> delLikeCount(Long id);
 
     Map<String, Object> getCommentList(long id, int page, int size);
 
-    Map<String, Object> addComment(long id, String content, long parentId);
+    Map<String, Object> addComment(long postId, long userId, String content, long parentId);
 
 }

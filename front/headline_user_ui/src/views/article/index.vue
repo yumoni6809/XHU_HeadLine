@@ -28,7 +28,7 @@
               class="avatar-uploader"
               name="avatarFile"
               v-model:file-list="fileList"
-              action="http://localhost:1919/user/upload"
+              action="/api/user/upload"
               multiple
               :on-preview="handlePreview"
               :on-remove="handleRemove"
@@ -327,7 +327,7 @@ const manageImages = ()=> {
 // 发布帖子
 const submitArticle = async ()=> {
   try {
-    const res = await instance.post('/api/news', articleForm.value)
+    const res = await instance.post('/user/news/post', articleForm.value)
     if (res.data.code === 1) {
       ElMessage.success('发布新帖成功')
       // 跳转回首页

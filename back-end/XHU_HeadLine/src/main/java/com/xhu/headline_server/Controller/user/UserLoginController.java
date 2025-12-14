@@ -24,6 +24,7 @@ public class UserLoginController {
      */
     @PostMapping("/login")
     public Map<String, Object> login(@RequestBody UserDTO userDTO) {
+        // 后端额外返回了头像和用户名信息
         LoginInfo flag = userService.login(userDTO.getUserName(), userDTO.getPassword());
 
         Map<String, Object> res = new HashMap<>();

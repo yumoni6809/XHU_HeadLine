@@ -16,6 +16,7 @@ import java.util.Map;
 
 @Service
 public class NewsServiceImpl implements NewsService {
+    private static final String DEFAULT_AUTHORID = "匿名用户" ;
     private final NewsPortMapper newsPortMapper;
     private final CommentMapper commentMapper;
     // 默认头像地址
@@ -74,8 +75,9 @@ public class NewsServiceImpl implements NewsService {
             item.put("updateTime", n.getUpdateTime());
             item.put("source", n.getSource());
             item.put("deleted", n.getDeleted());
-            // 注意: 头像为额外查询获取的 获取authorId为参数
+            // 注意: 头像和作者名为额外查询获取的 获取authorId为参数
             item.put("avatar_url", getAvatarUrl(n.getAuthorId()));
+            item.put("authorName",getAuthorName(n.getAuthorId()));
 
             enhanced.add(item);
         }
@@ -96,11 +98,39 @@ public class NewsServiceImpl implements NewsService {
         User user = userMapper.getUserById(authorId);
         return user.getAvatarUrl() ;
     }
+    // 根据authorId 返回作者名
+    private String getAuthorName(Long authorId){
+        if (authorId == null) return DEFAULT_AUTHORID;
+        User user = userMapper.getUserById(authorId);
+        return user.getUserName();
+    }
 
-
+    // 同样用到上面的辅助方法
+    // 额外返回作者头像和名字
     @Override
     public Map<String, Object> getNewsDetail(Long id) {
-        return newsPortMapper.findNewsById(id);
+        Map<String,Object> item = new HashMap<>();
+        NewsPort n = newsPortMapper.getById(id);
+        // 图省事直接复用的上面代码
+        item.put("id", n.getId());
+        item.put("authorId", n.getAuthorId());
+        item.put("categoryId", n.getCategoryId());
+        item.put("title", n.getTitle());
+        item.put("content", n.getContent());
+        item.put("coverImages", n.getCoverImages());
+        item.put("status", n.getStatus());
+        item.put("viewCount", n.getViewCount());
+        item.put("likeCount", n.getLikeCount());
+        item.put("commentCount", n.getCommentCount());
+        item.put("createTime", n.getCreateTime());
+        item.put("updateTime", n.getUpdateTime());
+        item.put("source", n.getSource());
+        item.put("deleted", n.getDeleted());
+        // 注意: 头像和作者名为额外查询获取的 获取authorId为参数
+        item.put("avatar_url", getAvatarUrl(n.getAuthorId()));
+        item.put("authorName",getAuthorName(n.getAuthorId()));
+        return item;
+
     }
 
     /**
@@ -111,6 +141,27 @@ public class NewsServiceImpl implements NewsService {
          newsPortMapper.incrViewCount(id);
         return newsPortMapper.getViewCount(id);
     }
+
+    @Override
+    public Map<String, Object> updateLikeCount(Long id, boolean liked) {
+        if (id == null) {
+            throw new IllegalArgumentException("id不能为空");
+        }
+
+        if (liked) {
+            newsPortMapper.incrLikeCount(id);
+        } else {
+            // 防止负数：只有在当前 > 0 时才减
+            int current = newsPortMapper.getLikeCount(id);
+            if (current > 0) {
+                newsPortMapper.decrLikeCount(id);
+            }
+        }
+
+        int likeCount = newsPortMapper.getLikeCount(id);
+        return Map.of("likeCount", likeCount, "liked", liked);
+    }
+
 
     @Override
     public Map<String, Object> addLikeCount(Long id) {
@@ -128,29 +179,55 @@ public class NewsServiceImpl implements NewsService {
 
 
     @Override
-    public Map<String, Object> getCommentList(long id, int page, int size) {
+    public Map<String, Object> getCommentList(long postId, int page, int size) {
+        if (page <= 0) page = 1;
+        if (size <= 0) size = 5;
         int offset = (page - 1) * size;
-        List<Comment> rows = commentMapper.listCommentsByPostId(id , offset , size);
-        int total = commentMapper.countCommentsByPostId(id);
 
-        return Map.of("rows",rows,"total",total);
+        List<Comment> comments = commentMapper.listCommentsByPostId(postId, offset, size);
+
+        Map<String, Object> res = new HashMap<>();
+        res.put("code", 1);
+        res.put("message", "ok");
+        res.put("data", comments);
+        return res;
     }
 
 
+
     @Override
-    public Map<String, Object> addComment(long id, String content, long parentId) {
+    public Map<String, Object> addComment(long postId, long userId, String content, long parentId) {
+        // 检查用户是否存在
+        User user = userMapper.getUserById(userId);
+        if (user == null) {
+            // 这里抛出异常，Controller 会捕获并返回错误信息给前端
+            throw new IllegalArgumentException("用户不存在 (ID: " + userId + ")");
+        }
+
+        // 构建评论对象
         Comment comment = new Comment();
-        comment.setPostId(id);
-        comment.setContent(content);
+        comment.setPostId(postId);
+        comment.setUserId(userId);
+        comment.setContent(content == null ? "" : content.trim());
         comment.setParentId(parentId);
-        comment.setCreateTime(String.valueOf(LocalDateTime.now()));
+
+        // 设置时间
+        comment.setCreateTime(LocalDateTime.now().toString());
+
+        // 插入数据库
         commentMapper.insertComment(comment);
 
         return Map.of(
-                "id", comment.getPostId(),
-                "content", comment.getContent(),
-                "parentId", comment.getParentId(),
-                "createTime", comment.getCreateTime()
+                "code", 1, // 加上 code=1，前端通常根据这个判断成功
+                "message", "评论成功",
+                "data", Map.of(
+                        "id", comment.getId(),
+                        "postId", comment.getPostId(),
+                        "userId", comment.getUserId(),
+                        "content", comment.getContent(),
+                        "parentId", comment.getParentId(),
+                        "createTime", comment.getCreateTime()
+                )
         );
     }
 

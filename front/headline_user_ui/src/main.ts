@@ -3,6 +3,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import './asset/main.css'
+import './stores/animationTransition/transitions.css'
 import pinia from '@/stores/index.js'
 
 const app = createApp(App)

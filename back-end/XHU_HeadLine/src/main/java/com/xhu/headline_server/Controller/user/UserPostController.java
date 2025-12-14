@@ -2,9 +2,11 @@ package com.xhu.headline_server.Controller.user;
 
 
 import com.xhu.headline_server.entity.NewsPort;
+import com.xhu.headline_server.entity.User;
 import com.xhu.headline_server.service.CategoryService;
 import com.xhu.headline_server.service.NewsService;
 import com.xhu.headline_server.service.impl.SensitiveServiceImpl;
+import com.xhu.headline_server.service.impl.UserServiceImpl;
 import com.xhu.headline_server.utils.AliyunOSSOperator;
 import com.xhu.headline_server.service.impl.NewPortServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,8 @@ public class UserPostController {
     private AliyunOSSOperator aliyunOSSOperator;
     @Autowired
     private SensitiveServiceImpl sensitiveServiceImpl;
+    @Autowired
+    private UserServiceImpl userServiceImpl;
 
 
     // 查咨询列表
@@ -70,6 +74,7 @@ public class UserPostController {
     public Map<String , Object> getNewsDetail(@PathVariable Long id){
         Map<String , Object> res = new HashMap<>();
         // 说白了还是查
+        // 注意这里实现类的细节
         res = newsService.getNewsDetail(id);
         return res;
     }
@@ -85,17 +90,18 @@ public class UserPostController {
     // 点赞
     // params : { likeCount , linked}
     @PostMapping("/news/{id}/like")
-    public Map<String, Object> likeNews(@PathVariable Long id, boolean liked) {
-        // 这里前端传入是否点赞过
-        Map<String, Object> res;
-        if (liked) {
-            // 如果已经点赞再点一下取消点赞
-            res = newsService.delLikeCount(id);
-        } else {
-            // 否则正常点赞
-            res = newsService.addLikeCount(id);
+    public Map<String, Object> likeNews(@PathVariable Long id,
+                                        @RequestParam(name = "liked", required = true) Boolean liked) {
+        if (liked == null) {
+            return Map.of("code", 0, "message", "liked 参数缺失");
         }
-        return res;
+        if (liked) {
+            // 已经点过，再点一次取消
+            return newsService.delLikeCount(id);
+        } else {
+            // 未点过，执行点赞
+            return newsService.addLikeCount(id);
+        }
     }
 
 
@@ -115,9 +121,44 @@ public class UserPostController {
     // params : {id , parentId , content}
     @PostMapping("news/{id}/comments")
     public Map<String, Object> addComments(@PathVariable long id, @RequestBody Map<String, Object> body) {
+        // 1. 校验 content
+        if (body.get("content") == null) {
+            return Map.of("code", 0, "message", "评论内容不能为空");
+        }
         String content = body.get("content").toString();
-        long parentId = Long.parseLong(body.getOrDefault("parentId", "0").toString());
-        return newsService.addComment(id, content, parentId);
+
+        // 2. 获取 parentId (处理 null 或 "0" 的情况)
+        long parentId = 0;
+        Object parentObj = body.get("parentId");
+        if (parentObj != null && !parentObj.toString().equals("null")) {
+            try {
+                parentId = Long.parseLong(parentObj.toString());
+            } catch (NumberFormatException e) {
+                parentId = 0;
+            }
+        }
+
+        // 3. 获取 userId (这是修复的关键)
+        if (body.get("userId") == null) {
+            return Map.of("code", 0, "message", "用户ID缺失");
+        }
+        long userId;
+        try {
+            userId = Long.parseLong(body.get("userId").toString());
+        } catch (NumberFormatException e) {
+            return Map.of("code", 0, "message", "用户ID格式错误");
+        }
+
+        // 4. 调用 Service
+        // 注意参数顺序必须与 Service 定义一致：postId, userId, content, parentId
+        try {
+            return newsService.addComment(id, userId, content, parentId);
+        } catch (IllegalArgumentException e) {
+            return Map.of("code", 0, "message", e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Map.of("code", 0, "message", "服务器内部错误");
+        }
     }
 
 
@@ -177,7 +218,72 @@ public class UserPostController {
         return res;
     }
 
-    //敏感词检查
+    // 设置页面拿到用户详细信息
+    @GetMapping("/info")
+    public Map<String, Object> settingGetPhone(@RequestParam Long id) {
+        HashMap<String, Object> res = new HashMap<>();
+        User user = userServiceImpl.getUserById(id);
+        if (user == null) {
+            return Map.of("code", 0, "message", "用户不存在");
+        }
+        res.put("id", user.getId());
+        res.put("username", user.getUserName());
+        res.put("phone", user.getPhone());
+        res.put("avatar", user.getAvatarUrl());
+        res.put("nickname",user.getNickName());
+        return res;
+    }
+
+    // 更新
+    @PutMapping("/info")
+    public Map<String, Object> settinChange(@RequestBody Map<String, Object> params) {
+        HashMap<String, Object> res = new HashMap<>();
+
+        // 尝试读取 id，若有则加载已有用户并更新；否则新建
+        Long id = null;
+        if (params.get("id") != null) {
+            try {
+                id = Long.parseLong(params.get("id").toString());
+            } catch (NumberFormatException ignored) { }
+        }
+
+        User user = (id != null) ? userServiceImpl.getUserById(id) : new User();
+        if (user == null) {
+            user = new User();
+        }
+
+        Object u = params.get("username");
+        if (u != null) {
+            String username = u.toString();
+            if (!username.isBlank()) user.setUserName(username);
+        }
+        Object p = params.get("phone");
+        if (p != null) {
+            String phone = p.toString();
+            if (!phone.isBlank()) user.setPhone(phone);
+        }
+        Object n = params.get("nickname");
+        if (n != null) {
+            String nickname = n.toString();
+            if (!nickname.isBlank()) user.setNickName(nickname);
+        }
+
+        try {
+            userServiceImpl.saveUser(user);
+            res.put("code", 1);
+            res.put("message", "用户信息已更新");
+            res.put("userName", user.getUserName());
+        } catch (Exception e) {
+            res.put("code", 0);
+            res.put("message", "用户更新失败");
+        }
+
+        return res;
+    }
+
+
+
+    // 敏感词检查
     // 传入参数为文章正文
     @PostMapping("/news/post/sensitive")
     public Map<String ,Object>sensitiveCheck(@RequestBody Map<String, Object> body){
