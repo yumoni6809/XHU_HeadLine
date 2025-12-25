@@ -123,6 +123,7 @@ public class UserServiceImpl implements UserService {
         loginInfo.setPassword(user.getPassword());
         loginInfo.setRole(user.getRole());
         loginInfo.setToken(token);
+        loginInfo.setAvatarUrl(user.getAvatarUrl());
         System.out.println("生成的 token: " + token);
 
         return loginInfo;

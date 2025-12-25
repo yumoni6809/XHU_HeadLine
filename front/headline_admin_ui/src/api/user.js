@@ -7,24 +7,32 @@ import http from './http'
  * 对应后端 POST /admin/user/list
  * 后端使用 @RequestBody Map<String,Object> 接收 JSON 请求体
  */
-export const queryPageApi = (params) =>
-  http.post(
+export const queryPageApi = (params) => {
+  // 1. 构造基础请求体
+  const data = {
+    ...params, // 展开传入的所有参数 (包含 searchForm 中的字段)
+    page: params?.page || 1,
+    size: params?.size || 10,
+  }
+
+  // 2. 清理空字符串，防止后端数字类型字段报错 (例如 role="")
+  // 如果你的后端不喜欢接收空字符串，这一步很重要
+  Object.keys(data).forEach(key => {
+    if (data[key] === '' || data[key] === null || data[key] === undefined) {
+      delete data[key]
+    }
+  })
+
+  return http.post(
     '/admin/user/list',
-    {
-      // 确保是一个干净的对象，避免响应式数据污染
-      userName: params?.userName || '',
-      role: params?.role ?? '',
-      phone: params?.phone || '',
-      page: params?.page || 1,
-      size: params?.size || 10,
-    },
+    data,
     {
       headers: {
-        // 明确告知后端这是 JSON
         'Content-Type': 'application/json',
       },
     },
   )
+}
 
 /**
  * 新增用户

@@ -32,11 +32,19 @@
             <el-form-item>
               <!-- 使用 RainbowButton 作为提交按钮 -->
               <div class="btn-wrap">
-                <RainbowButton @click="onSubmit">登录</RainbowButton>
+                <RainbowButton @click="handleLogin">登录</RainbowButton>
               </div>
             </el-form-item>
           </el-form>
         </el-card>
+        <!-- 暂不登录，继续使用 -->
+        <button
+          type="button"
+          class="w-full py-2 text-sm text-gray-600 hover:text-blue-500"
+          @click="handleSkipLogin"
+        >
+          暂不登录，继续使用
+        </button>
       </div>
     </div>
   </AuroraBackground>
@@ -53,19 +61,20 @@ import RainbowButton from '@/components/inspira/RainbowButton.vue'
 
 const router = useRouter()
 const route = useRoute()
-const formRef = ref()
 
 
 const goRegister = () => {
   router.push('/register')
 }
 
-// 登录表单数据
+// 登录表单（根据你实际表单字段调整）
 const form = reactive({
   userName: '',
   password: '',
-  remember: false,
 })
+
+// 是否正在提交
+const loading = ref(false)
 
 
 // 基本校验规则
@@ -87,48 +96,86 @@ function onVanishingSubmitPassword(val: string) {
 }
 
 // 点击登录按钮
-const onSubmit = async () => {
+const handleLogin = async () => {
+  if (!form.userName || !form.password) {
+    ElMessage.warning('请输入用户名和密码')
+    return
+  }
+
+  loading.value = true
   try {
-    const res = await request.post('/user/login', {
+    const res:any = await request.post('/user/login', {
       userName: form.userName,
       password: form.password,
     })
 
-    // 检查业务状态码
+    // axios 拦截器已解包，所以 res 就是 { code, data }
     if (res.code !== 1) {
-      ElMessage.error(res.message || '用户名或密码错误')
+      ElMessage.error(res.message || '登录失败')
       return
     }
 
-    const loginInfo = res.data
-
-    if (!loginInfo || !loginInfo.token) {
+    const data = res.data
+    if (!data?.token) {
       ElMessage.error('登录异常：未获取到 Token')
       return
     }
 
-    const roleNumber = typeof loginInfo.role === 'string' ? Number(loginInfo.role) : loginInfo.role
+    const roleNumber = typeof data.role === 'string'
+      ? Number(data.role)
+      : data.role
 
-    localStorage.setItem('token', loginInfo.token)
+    // 1. 持久化 token
+    localStorage.setItem('token', data.token)
 
-    localStorage.setItem(
-      'login_user',
-      JSON.stringify({
-        userId: loginInfo.userId,
-        userName: loginInfo.userName,
-        role: roleNumber,
-        avatarUrl: loginInfo.avatarUrl || '',
-      }),
-    )
+    // 2. 持久化当前登录用户信息
+    const loginUser = {
+      userId: data.userId,
+      userName: data.userName,
+      role: roleNumber,
+      // 后端目前没有头像字段，将来一旦提供 avatarUrl，这里会自动带上
+      avatarUrl: data.avatarUrl || '',
+    }
+    localStorage.setItem('login_user', JSON.stringify(loginUser))
 
     ElMessage.success('登录成功')
 
-    // 4. 跳转到系统首页
-    const redirect = (route.query.redirect as string) || '/layout/home'
-    router.replace(redirect)
+    // 如果有来源页面（例如 detail 页带了 redirect 参数），优先跳回去
+    const redirect = route.query.redirect as string | undefined
+    if (redirect) {
+      router.push(redirect)
+    } else {
+      router.push('/layout/home')
+    }
   } catch (err) {
     console.error(err)
+    ElMessage.error('登录失败，请稍后重试')
+  } finally {
+    loading.value = false
   }
+}
+
+// 暂不登录，继续使用：返回上一页；如果没有上一页，则去首页
+const handleSkipLogin = () => {
+  const redirect = route.query.redirect as string
+  
+  if (redirect) {
+    try {
+      // 解析目标路由，查看是否需要登录
+      const targetRoute = router.resolve(redirect)
+      
+      // 如果目标页面不需要登录（例如文章详情页），则允许跳回去
+      if (targetRoute && !targetRoute.meta.requiresAuth) {
+        router.push(redirect)
+        return
+      }
+    } catch (e) {
+      console.warn('解析重定向路由失败', e)
+    }
+  }
+  
+  // 其他情况（目标需要登录，或无来源），统一回首页
+  router.push('/layout/home')
 }
 </script>
 

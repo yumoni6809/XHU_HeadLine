@@ -17,4 +17,6 @@ public class LoginInfo {
     private String token;
     @Setter
     private int role;
+    @Setter
+    private String avatarUrl;
 }

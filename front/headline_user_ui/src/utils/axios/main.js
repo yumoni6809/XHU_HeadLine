@@ -2,20 +2,24 @@ import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
 
-const baseURL = 'http://localhost:8080'
-
-const instance = axios.create({
-  baseURL: baseURL,
-  timeout: 1000,
+// 1. 创建 axios 实例
+const http = axios.create({
+  baseURL: '/api',
+  timeout: 10000,
 })
 
-// 请求拦截器：在每次请求前，自动从 localStorage 读取 token，放到请求头中
+// 请求拦截器
 http.interceptors.request.use(
   config => {
     const token = localStorage.getItem('token')
+
+    // 只要本地有 token，就统一加到请求头
+    // 后端可以从 headers['token'] 里拿到
     if (token) {
+      // 注意：有的服务端要求是 Authorization: Bearer xxx，这里按你的后端用 'token'
       config.headers['token'] = token
     }
+
     return config
   },
   error => {
@@ -32,11 +36,20 @@ http.interceptors.response.use(
   },
   error => {
     console.log('err' + error)
-    // 如果是 401 未授权，通常意味着 token 过期或无效
+    const skipAuthRedirect = error?.config?.skipAuthRedirect
     if (error.response && error.response.status === 401) {
-      ElMessage.error('登录已过期，请重新登录')
+      if (skipAuthRedirect) {
+        // 本次请求明确不需要跳登录，直接把错误抛回去由调用方处理
+        return Promise.reject(error)
+      }
+      const currentFullPath = router.currentRoute.value.fullPath
+      // 清理本地登录态
       localStorage.removeItem('token')
-      router.push('/login')
+      localStorage.removeItem('login_user')
+      // 跳转登录，并带上 redirect
+      if (!['/login', '/register'].includes(router.currentRoute.value.path)) {
+        router.push({ path: '/login', query: { redirect: currentFullPath || '/layout/home' } })
+      }
     } else {
       ElMessage({
         message: error.message || '请求出错',
@@ -44,11 +57,7 @@ http.interceptors.response.use(
         duration: 5 * 1000
       })
     }
-    else {
-      return config
-    }
-  }, (err)=> {
-    Promise.reject(err)
+    return Promise.reject(error)
   }
 )
 

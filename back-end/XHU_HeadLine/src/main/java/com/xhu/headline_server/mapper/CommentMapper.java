@@ -10,11 +10,10 @@ import java.util.List;
 
 @Mapper
 public interface CommentMapper {
-    List<Comment> listCommentsByPostId(@Param("postId") Long postId,
+    List<Comment> listCommentsByPostId(@Param("postId") long postId,
                                        @Param("offset") int offset,
                                        @Param("size") int size);
 
-    int countCommentsByPostId(@Param("postId") Long postId);
+    int insertComment(Comment comment);
 
-    void insertComment(Comment comment);
 }

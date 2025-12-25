@@ -81,14 +81,41 @@ export function curd(api: Api = {}, options: any = {}) {
 
   // 查询
   const search = async () => {
-    const args = [...Object.values(searchForm), currentPage.value, pageSize.value]
-    console.debug('curd.search args:', args)
+    const params = {
+      ...searchForm,
+      page: currentPage.value,
+      size: pageSize.value,
+      pageNum: currentPage.value,
+      pageSize: pageSize.value
+    }
+    console.debug('curd.search params:', params)
     try {
-      const res = await api.queryPage?.(...args)
-      console.debug('curd.search response:', res)
-      if (res && res.code) {
-        list.value = res.data.rows || []
-        total.value = res.data.total || 0
+      const res = await api.queryPage?.(params)
+      console.debug('curd.search raw response:', res)
+
+      // 1. 智能解包
+      const body = (res && res.data && typeof res.data === 'object' && 'code' in res.data) 
+        ? res.data 
+        : res
+
+      console.debug('curd.search processed body:', body)
+
+      // 2. 增加对 code === 1 的支持
+      if (body && (body.code === 200 || body.code === 0 || body.code === 1)) {
+        
+        // 3. 获取数据节点
+        const dataNode = body.data
+
+        // 4. 提取列表
+        const rawList = Array.isArray(dataNode) 
+          ? dataNode 
+          : (dataNode?.rows || dataNode?.records || dataNode?.list || [])
+        
+        list.value = Array.isArray(rawList) ? rawList : []
+
+        // 5. 提取总数
+        total.value = dataNode?.total || dataNode?.totalRow || dataNode?.count || dataNode?.totalCount || 0
+        
         columnWidth(
           list.value,
           options.labels || {},
@@ -97,6 +124,7 @@ export function curd(api: Api = {}, options: any = {}) {
           options.maxWidth,
         )
       } else {
+        console.warn('curd.search failed: code is not 200/0/1', body)
         list.value = []
         total.value = 0
         columnWidth([], options.labels || {}, options.padding, options.minWidth, options.maxWidth)

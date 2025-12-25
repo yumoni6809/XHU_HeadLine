@@ -2,228 +2,182 @@
 <script setup>
 import Heart from '@/asset/img/Love.svg'
 import Loved from '@/asset/img/lamb-love.svg'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, nextTick } from 'vue'
 import { Comment, View } from '@element-plus/icons-vue'
-import { useRouter, useRoute } from 'vue-router'
-import { storeToRefs } from 'pinia'
-import { useAnimationTransitionStore } from '@/stores'
+import { useRouter } from 'vue-router'
+import { useAnimationTransitionStore } from '@/stores';
+import request from '@/utils/axios/main.js'
+import { ElMessage } from 'element-plus'
+import { ensureLogin } from '@/utils/axios/auth.js'
 
 defineOptions({
   name: 'HomePage'
 })
 
 const router = useRouter()
-const route = useRoute()
-
 // 设置动画的过度方向
+
 const animationTransitionStore = useAnimationTransitionStore()
-const { transitionDirection } = storeToRefs(animationTransitionStore)
 const { setTransitionDirection } = animationTransitionStore
 
-const articleList = ref([
-{
-    id: 10001,
-    title: '纸上的魔法使：序章·失落的记忆',
-    summary: '主角在一张古老的纸上醒来，却发现自己失去了关于现实世界的全部记忆，只能依靠纸上的“指令”一步步前进。',
-    authorName: '明月栞那',
-    avatarUrl: 'https://s2.loli.net/2025/11/18/XqS4kF6RnIZJLgm.png',
-    coverImages: [
-      'https://s2.loli.net/2025/11/18/CILJ3hmbwnvDP7g.png',
-      'https://s2.loli.net/2025/11/18/p25hry4qZxauTjl.jpg'
-    ],
-    // 列表页仅展示 coverImages[0] 作为封面
-    viewCount: 123,
-    likeCount: 45,
-    createdAt: '2025-11-28 10:00:00',
-    commentCount: 1342
-  },
-  {
-    id: 10002,
-    title: '纸上的魔法使：第二章·被封印的图书馆',
-    summary: '主角误入一座被封印的纸质图书馆，每翻开一页书，现实世界就会发生微小却不可逆的变化。',
-    authorName: '白银绘里',
-    avatarUrl: 'https://s2.loli.net/2025/05/22/HDWghSv3rqcLbx1.png',
-    coverImages: [
-      'https://s2.loli.net/2025/11/18/jSeigpch9N2UrsY.png',
-      'https://s2.loli.net/2025/05/22/wmHnJlIOPbcBhfZ.png'
-    ],
-    viewCount: 256,
-    likeCount: 78,
-    createdAt: '2025-11-28 11:20:00',
-    commentCount: 1145
-  },
-  {
-    id: 10003,
-    title: '纸上的魔法使：支线·墨迹中的分歧选择',
-    summary: '一次看似普通的选择，让纸上的墨迹分裂成完全不同的两条时间线，玩家必须在其中做出抉择。',
-    authorName: '九条雪',
-    avatarUrl: 'https://s2.loli.net/2025/05/22/wRjJTzoLAUvdc9g.png',
-    coverImages: [
-      'https://s2.loli.net/2025/05/22/Sgdu4hrHm8e1iXN.png',
-      'https://s2.loli.net/2024/04/08/d9IDqExftiYg4CA.png'
-    ],
-    viewCount: 342,
-    likeCount: 96,
-    createdAt: '2025-11-29 09:15:00',
-    commentCount: 1919
-  },
-  {
-    id: 10004,
-    title: '世界观设定：纸之世界与现实世界的边界',
-    summary: '介绍《纸上的魔法使》中“纸世界”与“现实世界”的对应关系，包括坐标映射、记忆回流以及结局分歧条件。',
-    authorName: 'AkizukiKanna',
-    avatarUrl: 'https://s2.loli.net/2025/05/22/LbpJY2R1WePIk7q.jpg',
-    coverImages: [
-      'https://s2.loli.net/2024/04/05/lToqV7gYhb8MAzI.png',
-      'https://s2.loli.net/2024/04/05/lTO4ytFw35nSIMe.png'
-    ],
-    viewCount: 512,
-    likeCount: 180,
-    createdAt: '2025-11-29 14:30:00',
-    commentCount: 91
-  },
-  {
-    id: 10005,
-    title: '开发札记：从纸上指令到对话式分支剧情',
-    summary: '记录从最初的纯文字指令系统，演化到现在对话式分支结构的设计思路与踩过的坑。',
-    authorName: '开发者日志',
-    avatarUrl: 'https://s2.loli.net/2025/05/22/1294xDQiKMTcJUG.png',
-    coverImages: [
-      'https://s2.loli.net/2024/04/05/jlb5GyrfVamHd9z.webp',
-      'https://s2.loli.net/2025/11/18/jSeigpch9N2UrsY.png',
-      'https://s2.loli.net/2025/05/22/Sgdu4hrHm8e1iXN.png',
-      'https://s2.loli.net/2025/05/22/qrUgRLaV97hxmy8.png'
 
-    ],
-    viewCount: 207,
-    likeCount: 64,
-    createdAt: '2025-11-30 08:45:00',
-    commentCount: 1343
-  },
-  {
-    id: 10006,
-    title: '系统设定：好感度与“纸屑”资源的交互机制',
-    summary: '详细说明游戏中好感度变化规则，纸屑的获取与消耗方式，以及对结局分支的影响。',
-    authorName: '系统设计组',
-    avatarUrl: 'https://s2.loli.net/2025/05/22/qrUgRLaV97hxmy8.png',
-    coverImages: [
-      'https://s2.loli.net/2025/11/18/p25hry4qZxauTjl.jpg',
-      'https://s2.loli.net/2025/05/22/Sgdu4hrHm8e1iXN.png'
-    ],
-    viewCount: 389,
-    likeCount: 120,
-    createdAt: '2025-11-30 13:10:00',
-    commentCount: 1342
+const articleList = ref([])
+
+// 获取文章列表数据
+const getArticleList = async () => {
+  try {
+    const res = await request.get('/user/news', {
+      params: { pageNum: 1, pageSize: 20 },
+      skipAuthRedirect: true 
+    })
+
+    // 若后端仍返回 code 判定
+    const list = res?.data?.list ?? res?.data ?? res?.rows ?? res ?? []
+    articleList.value = (Array.isArray(list) ? list : []).map((item) => {
+      // --- 修复封面图解析逻辑 ---
+      let images = []
+      // 兼容后端可能返回的字段名: coverImages 或 coverImage
+      const rawCover = item.coverImages || item.coverImage || ''
+      
+      if (Array.isArray(rawCover)) {
+        images = rawCover
+      } else if (typeof rawCover === 'string' && rawCover.trim() !== '') {
+        const str = rawCover.trim()
+        if (str.startsWith('[') && str.endsWith(']')) {
+          try {
+            images = JSON.parse(str)
+          } catch (e) {
+            images = str.split(',')
+          }
+        } else {
+          images = str.split(',')
+        }
+      }
+
+      return {
+        ...item,
+        coverImages: images.filter(url => url && typeof url === 'string' && url.length > 0),
+        avatarUrl: item.avatar_url ?? item.avatarUrl ?? item.authorAvatar ?? '', // 增加 authorAvatar 兼容
+        authorName: item.authorName ?? item.source ?? '匿名用户',
+      }
+    })
+  } catch (error) {
+    if (error?.response?.status === 401) {
+      ElMessage.warning('该接口目前要求登录，需后端放开匿名访问')
+    } else {
+      ElMessage.error('获取文章列表失败')
+    }
   }
-])
-
+}
 
 // 点击帖子标题和摘要跳转到帖子首页
-const jumpToArticleDetail = (articleId)=> {
+const jumpToArticleDetail = (articleId) => {
+  if (!articleId) return
   // 前进动画
   setTransitionDirection('forward')
 
   router.push({
     path: '/article',
-    // query: {
-    //   id:articleId
-    // }
+    query: {
+      id: articleId
+    }
   })
 }
 
 // 动态计算gap
 const containerRef = ref(null)
 const gapWidth = ref(null)
-const coverImagesDisplayRef = ref(null)
+const coverImagesDisplayRef = ref([])
 
-// 定义是否点赞
-const isLiked = ref(false)
-
-// 定义处理点赞函数
-const handleLike = ()=> {
-  if (isLiked.value) {
-    isLiked.value = false
-  }
-  else {
-    isLiked.value = true
+// 定义是否点赞 (这里暂时是前端模拟，实际应该调用接口)
+const handleLike = (article) => {
+  // 注意：这里修改的是单个文章的点赞状态，而不是全局变量
+  // 实际开发中应该调用后端点赞接口
+  if (article.isLiked) {
+    article.isLiked = false
+    article.likeCount = (article.likeCount || 0) - 1
+  } else {
+    article.isLiked = true
+    article.likeCount = (article.likeCount || 0) + 1
   }
 }
 
+onMounted(async () => {
+  await getArticleList() // 页面加载时获取数据
 
-onMounted(()=> {
-  // gapWidth.value = coverImageDisplayRef.value.offsetWidth
-  gapWidth.value = (containerRef.value.offsetWidth - 20 - 300) / 2
-  coverImagesDisplayRef.value.forEach((singleImageDisplayRef)=> {
-    singleImageDisplayRef.style.setProperty('--dynamic-gap', gapWidth.value + 'px' )
+  // 等待 DOM 更新后再计算样式
+  nextTick(() => {
+    if (containerRef.value && coverImagesDisplayRef.value.length > 0) {
+      gapWidth.value = (containerRef.value.offsetWidth - 20 - 300) / 2
+      coverImagesDisplayRef.value.forEach((singleImageDisplayRef) => {
+        if (singleImageDisplayRef) {
+          singleImageDisplayRef.style.setProperty('--dynamic-gap', gapWidth.value + 'px')
+        }
+      })
+    }
   })
 })
-
 </script>
 
 <template>
+
   <div ref="containerRef" class="allContentContainer">
-    <!--
-    singleArticle:
-      {
-      "id": 10001,
-      "title": "标题",
-      "summary": "摘要...",
-      "authorName": "张三",
-      "coverImages": ["https://oss.../cover.jpg", "https://oss.../img1.jpg"],
-      //列表页仅取 coverImages[0] 作为封面展示
-      "viewCount": 123,
-      "likeCount": 45,
-      "createdAt": "2025-11-28 10:00:00"
-    }
-    -->
-    <div class="singleArticle" v-for="article in articleList" :key="article.id">
+
+    <!-- 显示空状态 -->
+    <el-empty v-if="articleList.length === 0" description="暂无文章内容"></el-empty>
+
+    <div class="singleArticle" v-for="article in articleList" :key="article.hid || article.id">
       <!-- 发帖人信息展示 -->
-      <div class="userInfoContainer" @click="jumpToArticleDetail()">
+      <div class="userInfoContainer" @click="jumpToArticleDetail(article.hid || article.id)">
         <div class="authorImage">
-          <img style="width: 40px; height: 40px; object-fit: cover; border-radius: 999px;" :src="article.avatarUrl" alt="用户头像">
+          <img style="width: 40px; height: 40px; object-fit: cover; border-radius: 999px;"
+               :src="article.avatarUrl || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'"
+               alt="用户头像">
         </div>
         <div class="postTimeAndAuthorName">
           <div class="authorName">
             <span>
-              {{ article.authorName }}
+              {{ article.authorName || '匿名用户' }}
             </span>
           </div>
           <div class="postTime">
             <span>
-              {{ article.createdAt }} · 发布了该帖子
+              {{ article.createTime || article.createdAt }} · 发布了该帖子
             </span>
           </div>
         </div>
       </div>
 
       <!-- 标题展示 -->
-      <div class="articleTitleContainer" @click="jumpToArticleDetail()">
+      <div class="articleTitleContainer" @click="jumpToArticleDetail(article.hid || article.id)">
         {{ article.title }}
       </div>
 
       <!-- 摘要展示 -->
-      <div class="summaryContailer" @click="jumpToArticleDetail()">
-        {{ article.summary }}
+      <div class="summaryContailer" @click="jumpToArticleDetail(article.hid || article.id)">
+        {{ article.content ? article.content.substring(0, 50) + '...' : '' }}
       </div>
 
-      <!-- 封面展示 -->
-      <div ref="coverImagesDisplayRef" class="coverImageDisplay" @click="checkTheAllImage(article.coverImages)">
-
+      <!-- 封面展示 (只有当 coverImages 存在且有内容时才渲染) -->
+      <div
+        v-if="article.coverImages && article.coverImages.length > 0"
+        ref="coverImagesDisplayRef"
+        class="coverImageDisplay"
+      >
         <!-- 最后一张图片的话添加一个类，这个类可以让内部元素进行堆叠 -->
         <div
           :class="{singleCoverContainer: true, additionalInfoImage: (index === 2 && article.coverImages.length > 3)? true: false}"
           v-for="(image, index) in (article.coverImages.length > 3? article.coverImages.slice(0, 3) : article.coverImages)"
           :key="image"
         >
-          <!-- <img class="previewCoversInHome" :src="image" alt="封面图片"> -->
           <el-image
             class="previewCoversInHome"
             :src="image"
             fit="cover"
             :preview-src-list="article.coverImages"
             :initial-index="index"
-            hide-on-click-modal="true"
-            show-progress="true"
+            :hide-on-click-modal="true"
+
           />
           <div class="additionalInfo" v-show="index === 2 && article.coverImages.length > 3? true: false">
             <span>共{{ article.coverImages.length }}张</span>
@@ -235,19 +189,19 @@ onMounted(()=> {
       <div class="otherComponents">
         <div class="componentsCommonStyle">
           <el-icon color="rgba(0, 0, 0, 0.3)"><View/></el-icon>
-          <span>{{ article.viewCount }}</span>
+          <span>{{ article.pageViews || article.viewCount || 0 }}</span>
         </div>
 
         <div class="likedAndCommentComponent">
-          <div class="componentsCommonStyle" @click="handleLike" >
-            <img v-if="!isLiked" :src="Heart" style="width: 16px; height: 16px;" alt="" >
+          <div class="componentsCommonStyle" @click.stop="handleLike(article)">
+            <img v-if="!article.isLiked" :src="Heart" style="width: 16px; height: 16px;" alt="" >
             <img v-else :src="Loved" style="width: 16px; height: 16px;" alt="">
-            <span>{{ article.likeCount }}</span>
+            <span>{{ article.likes || article.likeCount || 0 }}</span>
           </div>
 
           <div class="componentsCommonStyle">
             <el-icon color="rgba(0, 0, 0, 0.3)"><Comment/></el-icon>
-            <span>{{ article.commentCount }}</span>
+            <span>{{ article.commentCount || 0 }}</span>
           </div>
         </div>
       </div>
@@ -255,10 +209,8 @@ onMounted(()=> {
   </div>
 </template>
 
-
-<style  scoped>
+<style scoped>
 .allContentContainer {
-  background-image: url('https://s2.loli.net/2025/05/22/wmHnJlIOPbcBhfZ.png');
   background-color: rgba(0, 0, 0, 0.2);
   background-size: cover;
   background-position: center;
@@ -286,6 +238,7 @@ onMounted(()=> {
   flex-direction: row;
   align-content: center;
   gap: 20px;
+  cursor: pointer;
 }
 
 .postTimeAndAuthorName {
@@ -297,11 +250,17 @@ onMounted(()=> {
 }
 .postTime {
   color: rgb(189, 197, 203);
+  font-size: 12px;
 }
 .articleTitleContainer {
   font-size: 20px;
   font-weight: 600;
-  font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif
+  font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  cursor: pointer;
+}
+.summaryContailer {
+  cursor: pointer;
+  color: #666;
 }
 .coverImageDisplay {
   display: flex;
@@ -333,18 +292,20 @@ onMounted(()=> {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  margin-top: 5px;
 }
 .componentsCommonStyle {
-  color: rgba(0, 0, 0, 0.2);
+  color: rgba(0, 0, 0, 0.5);
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 5px
+  gap: 5px;
+  cursor: pointer;
 }
 .likedAndCommentComponent {
   display: flex;
   flex-direction: row;
-  gap: 20px;
+  gap: 15px;
 }
 </style>

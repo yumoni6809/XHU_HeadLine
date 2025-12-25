@@ -12,4 +12,10 @@
         FROM news_category
         ORDER BY id ASC
     </select>
+
+    <select id="getById" parameterType="int" resultMap="NewsCategoryResult">
+        SELECT id, name
+        FROM news_category
+        WHERE id = #{id}
+    </select>
 </mapper>

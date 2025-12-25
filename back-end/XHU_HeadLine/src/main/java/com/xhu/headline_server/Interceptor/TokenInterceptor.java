@@ -21,7 +21,7 @@ public class TokenInterceptor implements HandlerInterceptor {
         // 1. 获取请求 url
         String url = request.getRequestURL().toString();
 
-        // 2. 登录接口直接放行
+        // 2. 特定接口直接放行
         if (url.contains("/admin/login")) {
             log.info("登录请求，直接放行: {}", url);
             return true;
@@ -34,6 +34,10 @@ public class TokenInterceptor implements HandlerInterceptor {
             log.info("注册请求，直接放行: {}", url);
             return true;
         }
+        if (url.contains("/news")) {
+            return true;
+        }
+
 
         // 3. 从请求头获取 token
         String jwt = request.getHeader("token");

@@ -1,5 +1,7 @@
 <script lang="ts">
 export default { name: 'UserView' }
+
+
 </script>
 
 <script setup lang="ts">
@@ -26,6 +28,8 @@ const initialUser = {
   updateTime: '',
   avatarUrl: '',
 }
+
+
 
 // 搜索 / 表单 字段配置
 const formSchemaConfig = [
@@ -204,178 +208,180 @@ const uploadHeaders = computed(() => {
 
 </script>
 <template>
-  <h2>用户管理</h2>
+  <div class="port-wrapper">
+    <h2>用户管理</h2>
 
-  <!--搜索栏-->
-  <div class="container">
-    <el-form :inline="true" :model="searchUserForm" class="inline-form">
-      <el-form-item v-for="field in formSchema" :key="field.prop" :label="field.label">
-        <component
-          v-if="field.type === 'input'"
-          :is="'el-input'"
-          v-model="searchUserForm[field.prop]"
-          :placeholder="field.placeholder"
-        />
-      </el-form-item>
-
-      <el-form-item>
-        <el-button v-if="props.isAdmin" type="success" @click="addUser">
-          <el-icon><CirclePlusFilled /></el-icon> 新增</el-button
-        >
-        <el-button type="primary" @click="search"
-          ><el-icon><Search /></el-icon> 查询</el-button
-        >
-        <el-button @click="clear"
-          ><el-icon><CircleCloseFilled /></el-icon> 清空</el-button
-        >
-      </el-form-item>
-    </el-form>
-  </div>
-
-  <!--列表-->
-  <div class="container" style="margin-top: 10px">
-    <el-table :data="userList" border style="width: 100%">
-      <el-table-column prop="id" label="ID" width="120" />
-      <el-table-column prop="userName" label="用户名" width="120" />
-      <el-table-column prop="password" label="密码" width="120" />
-      <el-table-column prop="nickName" label="昵称" width="120" />
-      <el-table-column prop="role" label="分类" width="120" />
-      <el-table-column prop="phone" label="电话" width="120" />
-      <el-table-column prop="createTime" label="创建时间" width="180" />
-      <el-table-column prop="updateTime" label="更新时间" width="180" />
-
-      <!-- avatar 列：显示图片或默认占位 -->
-      <el-table-column label="头像" width="80">
-        <template #default="{ row }">
-          <div class="avatar-cell">
-            <a v-if="row.avatarUrl" :href="row.avatarUrl" target="_blank" rel="noopener noreferrer">
-              <img
-                :src="row.avatarUrl || DEFAULT_AVATAR"
-                @error="onImageError"
-                alt="avatar"
-                class="avatar-img"
-              />
-            </a>
-            <img v-else :src="DEFAULT_AVATAR" alt="default avatar" class="avatar-img" />
-          </div>
-        </template>
-      </el-table-column>
-
-      <!-- 操作列 -->
-      <el-table-column label="操作" width="120">
-        <template #default="{ row }">
-          <div class="action-buttons">
-            <el-button v-if="props.isAdmin" size="small" type="primary" @click="updateUser(row)">
-              <el-icon><EditPen /></el-icon>
-            </el-button>
-            <el-button v-if="props.isAdmin" size="small" type="danger" @click="delUser(row)">
-              <el-icon><Delete /></el-icon>
-            </el-button>
-          </div>
-        </template>
-      </el-table-column>
-    </el-table>
-  </div>
-
-  <!--新增/编辑对话框-->
-  <el-dialog v-if="props.isAdmin" v-model="dialogShow" :title="dialogTitle" width="720px">
-    <el-form :model="user" label-width="100px">
-      <!--第一行-->
-      <el-row :gutter="20">
-        <el-col :span="12">
-          <el-form-item label="用户名">
-            <el-input v-model="user.userName" placeholder="请输入用户名" />
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item label="密码">
-            <el-input v-model="user.password" placeholder="请输入密码" type="password" />
-          </el-form-item>
-        </el-col>
-      </el-row>
-
-      <!--第二行-->
-      <el-row :gutter="20">
-        <el-col :span="12">
-          <el-form-item label="昵称">
-            <el-input v-model="user.nickName" placeholder="请输入昵称" />
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item label="分类">
-            <el-select v-model="user.role" placeholder="请选择分类">
-              <el-option :label="'0 - 管理员'" :value="0" />
-              <el-option :label="'1 - 员工'" :value="1" />
-              <el-option :label="'2 - 用户'" :value="2" />
-            </el-select>
-            <div class="hint">提示：0 为管理员，1 为员工，2 为用户</div>
-          </el-form-item>
-        </el-col>
-      </el-row>
-
-      <!--第三行-->
-      <el-row :gutter="20"></el-row>
-      <el-col :span="12">
-        <el-form-item label="电话">
-          <el-input v-model="user.phone" placeholder="请输入电话" />
+    <!--搜索栏-->
+    <div class="container">
+      <el-form :inline="true" :model="searchUserForm" class="inline-form">
+        <el-form-item v-for="field in formSchema" :key="field.prop" :label="field.label">
+          <component
+            v-if="field.type === 'input'"
+            :is="'el-input'"
+            v-model="searchUserForm[field.prop]"
+            :placeholder="field.placeholder"
+          />
         </el-form-item>
-      </el-col>
 
-      <!--上传头像-->
-      <el-row :gutter="20">
-        <el-col :span="12">
-          <el-form-item label="头像">
-            <el-upload
-              class="image-uploader"
-              action="/api/admin/user/uploadImage"
-              name="image"
-              :show-file-list="false"
-              :on-success="uploadSuccess"
-              :on-error="uploadError"
-              :before-upload="beforeUpload"
-              :headers="uploadHeaders"
-              accept="image/*"
-            >
-              <el-button size="small" type="primary">点击上传头像</el-button>
-            </el-upload>
+        <el-form-item>
+          <el-button v-if="props.isAdmin" type="success" @click="addUser">
+            <el-icon><CirclePlusFilled /></el-icon> 新增</el-button
+          >
+          <el-button type="primary" @click="search"
+            ><el-icon><Search /></el-icon> 查询</el-button
+          >
+          <el-button @click="clear"
+            ><el-icon><CircleCloseFilled /></el-icon> 清空</el-button
+          >
+        </el-form-item>
+      </el-form>
+    </div>
 
-            <div style="margin-top: 6px">
-              <div v-if="user.avatarUrl">
-                <a :href="user.avatarUrl" target="_blank">{{ user.avatarUrl }}</a>
-                <div style="margin-top: 6px">
-                  <img
-                    :src="user.avatarUrl"
-                    @error="onImageError"
-                    alt="avatar preview"
-                    class="avatar-preview"
-                  />
-                </div>
-              </div>
-              <div v-else>尚未上传</div>
+    <!--列表-->
+    <div class="container" style="margin-top: 10px">
+      <el-table :data="userList" border style="width: 100%">
+        <el-table-column prop="id" label="ID" width="120" />
+        <el-table-column prop="userName" label="用户名" width="120" />
+        <el-table-column prop="password" label="密码" width="120" />
+        <el-table-column prop="nickName" label="昵称" width="120" />
+        <el-table-column prop="role" label="分类" width="120" />
+        <el-table-column prop="phone" label="电话" width="120" />
+        <el-table-column prop="createTime" label="创建时间" width="180" />
+        <el-table-column prop="updateTime" label="更新时间" width="180" />
+
+        <!-- avatar 列：显示图片或默认占位 -->
+        <el-table-column label="头像" width="80">
+          <template #default="{ row }">
+            <div class="avatar-cell">
+              <a v-if="row.avatarUrl" :href="row.avatarUrl" target="_blank" rel="noopener noreferrer">
+                <img
+                  :src="row.avatarUrl || DEFAULT_AVATAR"
+                  @error="onImageError"
+                  alt="avatar"
+                  class="avatar-img"
+                />
+              </a>
+              <img v-else :src="DEFAULT_AVATAR" alt="default avatar" class="avatar-img" />
             </div>
+          </template>
+        </el-table-column>
+
+        <!-- 操作列 -->
+        <el-table-column label="操作" width="120">
+          <template #default="{ row }">
+            <div class="action-buttons">
+              <el-button v-if="props.isAdmin" size="small" type="primary" @click="updateUser(row)">
+                <el-icon><EditPen /></el-icon>
+              </el-button>
+              <el-button v-if="props.isAdmin" size="small" type="danger" @click="delUser(row)">
+                <el-icon><Delete /></el-icon>
+              </el-button>
+            </div>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+
+    <!--新增/编辑对话框-->
+    <el-dialog v-if="props.isAdmin" v-model="dialogShow" :title="dialogTitle" width="720px">
+      <el-form :model="user" label-width="100px">
+        <!--第一行-->
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="用户名">
+              <el-input v-model="user.userName" placeholder="请输入用户名" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="密码">
+              <el-input v-model="user.password" placeholder="请输入密码" type="password" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <!--第二行-->
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="昵称">
+              <el-input v-model="user.nickName" placeholder="请输入昵称" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="分类">
+              <el-select v-model="user.role" placeholder="请选择分类">
+                <el-option :label="'0 - 管理员'" :value="0" />
+                <el-option :label="'1 - 员工'" :value="1" />
+                <el-option :label="'2 - 用户'" :value="2" />
+              </el-select>
+              <div class="hint">提示：0 为管理员，1 为员工，2 为用户</div>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <!--第三行-->
+        <el-row :gutter="20"></el-row>
+        <el-col :span="12">
+          <el-form-item label="电话">
+            <el-input v-model="user.phone" placeholder="请输入电话" />
           </el-form-item>
         </el-col>
-      </el-row>
-    </el-form>
 
-    <template #footer>
-      <el-button @click="cancelEdit">取 消</el-button>
-      <el-button type="primary" @click="saveUser">确 定</el-button>
-    </template>
-  </el-dialog>
+        <!--上传头像-->
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="头像">
+              <el-upload
+                class="image-uploader"
+                action="/api/admin/user/uploadImage"
+                name="image"
+                :show-file-list="false"
+                :on-success="uploadSuccess"
+                :on-error="uploadError"
+                :before-upload="beforeUpload"
+                :headers="uploadHeaders"
+                accept="image/*"
+              >
+                <el-button size="small" type="primary">点击上传头像</el-button>
+              </el-upload>
 
-  <div class="container" style="margin-top: 10px; text-align: right">
-    <el-pagination
-      v-model:current-page="currentPage"
-      v-model:page-size="pageSize"
-      :page-sizes="[5, 10, 20]"
-      :total="total"
-      layout="total,sizes,prev,pager,next,jumper"
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-    />
+              <div style="margin-top: 6px">
+                <div v-if="user.avatarUrl">
+                  <a :href="user.avatarUrl" target="_blank">{{ user.avatarUrl }}</a>
+                  <div style="margin-top: 6px">
+                    <img
+                      :src="user.avatarUrl"
+                      @error="onImageError"
+                      alt="avatar preview"
+                      class="avatar-preview"
+                    />
+                  </div>
+                </div>
+                <div v-else>尚未上传</div>
+              </div>
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
+
+      <template #footer>
+        <el-button @click="cancelEdit">取 消</el-button>
+        <el-button type="primary" @click="saveUser">确 定</el-button>
+      </template>
+    </el-dialog>
+
+    <div class="container" style="margin-top: 10px; text-align: right">
+      <el-pagination
+        v-model:current-page="currentPage"
+        v-model:page-size="pageSize"
+        :page-sizes="[5, 10, 20]"
+        :total="total"
+        layout="total,sizes,prev,pager,next,jumper"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+      />
+    </div>
   </div>
-
+  
 </template>
 <style scoped>
 .container {

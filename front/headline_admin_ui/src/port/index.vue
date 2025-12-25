@@ -24,6 +24,12 @@ import {
 // 路由
 const router = useRouter()
 
+// 从父布局接收是否管理员
+const props = defineProps<{
+  isAdmin: boolean
+}>()
+
+
 // 初始文章对象（字段名要和后端 newsPort 保持一致）
 const initialPort = {
   id: null as number | null,
@@ -298,20 +304,12 @@ const cancelEdit = cancel
             >
               发布
             </el-button>
-            <el-button
-              size="small"
-              type="info"
-              @click="changeStatus(row, 2)"
-              :disabled="row.status === 2"
-            >
-              删除
-            </el-button>
 
             <el-button size="small" type="primary" @click="goEdit(row)">
-              <el-icon><EditPen /></el-icon>
+              编辑
             </el-button>
             <el-button size="small" type="danger" @click="delPort(row)">
-              <el-icon><Delete /></el-icon>
+              删除
             </el-button>
           </div>
         </template>

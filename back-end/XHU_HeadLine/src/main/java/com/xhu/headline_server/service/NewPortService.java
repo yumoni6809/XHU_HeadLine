@@ -1,7 +1,7 @@
 package com.xhu.headline_server.service;
 
 import com.xhu.headline_server.entity.NewsPort;
-
+import com.xhu.headline_server.entity.NewsPortDTO;
 import java.util.List;
 
 public interface NewPortService {
@@ -13,12 +13,12 @@ public interface NewPortService {
      *
      * @return
      */
-    Long saveNewsPort(NewsPort newsPortDTO);
+    Long saveNewsPort(NewsPortDTO newsPortDTO);
 
     /**
      * 根据 id 查询新闻
      */
-    NewsPort getNewsPortById(Long id);
+    NewsPortDTO getNewsPortById(Long id);
 
     /**
      * 根据 id 删除新闻

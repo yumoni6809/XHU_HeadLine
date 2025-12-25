@@ -57,6 +57,11 @@ const router = useRouter()
 const route = useRoute()
 const formRef = ref()
 
+// 接受admin信息
+defineProps<{
+  isAdmin?: boolean | string
+}>()
+
 // 登录表单数据
 const form = reactive({
   userName: '',

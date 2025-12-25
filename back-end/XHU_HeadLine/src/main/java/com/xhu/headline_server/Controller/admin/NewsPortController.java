@@ -1,6 +1,7 @@
 package com.xhu.headline_server.Controller.admin;
 
 import com.xhu.headline_server.entity.NewsPort;
+import com.xhu.headline_server.entity.NewsPortDTO;
 import com.xhu.headline_server.service.NewPortService;
 import com.xhu.headline_server.utils.util1;
 import org.mybatis.logging.Logger;
@@ -25,20 +26,19 @@ public class NewsPortController {
     private static final Logger log = LoggerFactory.getLogger(NewsPortController.class);
 
     /**
-     * 重点掌握
      * 增
      */
     @PostMapping("/add")
-    public Map<String, Object> addNewsPort(@RequestBody NewsPort newsPortDTO) {
+    public Map<String, Object> addNewsPort(@RequestBody NewsPortDTO newsPortDTO) {
         Map<String, Object> res = new HashMap<>();
         try {
-            // 使用服务层的 saveNewsPort 完成新增
             newPortService.saveNewsPort(newsPortDTO);
             res.put("code", 1);
             res.put("message", "新闻添加成功");
         } catch (Exception e) {
+            e.printStackTrace(); // 建议打印堆栈以便调试
             res.put("code", 0);
-            res.put("message", "新闻添加失败");
+            res.put("message", "新闻添加失败: " + e.getMessage());
         }
         return res;
     }
@@ -63,7 +63,7 @@ public class NewsPortController {
             // 将获取的id转换为Long格式
             Long id = Long.valueOf(idObj.toString());
             // 调用服务层 获取对应id的帖子信息
-            NewsPort newsPort = newPortService.getNewsPortById(id);
+            NewsPortDTO newsPort = newPortService.getNewsPortById(id);
             if (newsPort == null) {
                 res.put("code", 0);
                 res.put("message", "新闻不存在");
@@ -130,18 +130,16 @@ public class NewsPortController {
      * 改
      */
     @PostMapping("/update")
-    public Map<String, Object> updateNewsPort(@RequestBody NewsPort newsPortDTO) {
+    public Map<String, Object> updateNewsPort(@RequestBody NewsPortDTO newsPortDTO) {
         Map<String, Object> res = new HashMap<>();
-        // 判断传入的新闻id是否为空
-        if (newsPortDTO.getId() == 0 || newsPortDTO.getId() == 0) {
+        // 校验 ID
+        if (newsPortDTO.getId() == null || newsPortDTO.getId() == 0) {
             res.put("code", 0);
             res.put("message", "新闻 id 不能为空");
             return res;
         }
 
         try {
-            // 仍然复用 saveNewsPort 带 id 即更新
-            // 记得去看下面这个方法的实现逻辑
             newPortService.saveNewsPort(newsPortDTO);
             res.put("code", 1);
             res.put("message", "新闻更新成功");
