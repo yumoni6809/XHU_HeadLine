@@ -1,10 +1,7 @@
 <script lang="ts" setup>
-import { ArrowLeft, MoreFilled, Promotion, ChatLineSquare, ArrowRight, View } from '@element-plus/icons-vue'
+ import { ArrowLeft, MoreFilled, Promotion, ChatLineSquare, ArrowRight, View, Close } from '@element-plus/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
 import { onMounted, ref, Ref, computed, ComputedRef } from 'vue'
-import Heart from '@/asset/img/Love.svg'
-import Loved from '@/asset/img/lamb-love.svg'
-import galgameImg from '@/asset/img/galgame.png'
 import ScrollIsland from '@/components/ScrollIsland.vue'
 
 import { storeToRefs } from 'pinia'
@@ -15,6 +12,9 @@ import instance from '@/utils/axios/main.js'
 import { ElMessage } from 'element-plus'
 import { ensureLogin } from '@/utils/axios/auth.js'
 import MarkdownIt from 'markdown-it'
+import Heart from '@/asset/img/Love.svg'
+import Loved from '@/asset/img/lamb-love.svg'
+
 
 defineOptions({
   name: 'ArticleDetailPage',
@@ -22,7 +22,6 @@ defineOptions({
 
 /**
  * 后端评论单条的结构约定
- * 对应接口：GET /user/news/{articleId}/comments 返回的数据中的每一条评论
  */
 type ArticleCommentType = {
   id: number
@@ -119,18 +118,14 @@ const returnToHome = () => {
 // ScrollIsland 开关
 const scrollIslandEnabled = ref(true)
 
-
 /**
  * 从后端拉取文章详情
- * 依赖接口：GET /user/news/{articleId}
  */
 const fetchArticleDetail = async () => {
   if (!articleId) return
   try {
     const res = await instance.get(`/user/news/${articleId}`)
     const detail = res as any
-
-    
 
     // 标题 & 正文
     titleNameSelf.value = detail.title || ''
@@ -186,8 +181,6 @@ const fetchArticleDetail = async () => {
 
 /**
  * 增加浏览量
- * 依赖接口：POST /user/news/{id}/view
- * 后端返回：{ "ViewCount": number }
  */
 const addViewCount = async () => {
   if (!articleId) return
@@ -205,8 +198,6 @@ const addViewCount = async () => {
 
 /**
  * 从后端拉取评论列表（含楼中楼）
- * 依赖接口：GET /user/news/{articleId}/comments?page=&size=
- * 约定响应结构：{ total: number, list: SingleMainCommentType[] }
  */
 const fetchArticleComments = async () => {
   if (!articleId) return
@@ -229,21 +220,16 @@ const fetchArticleComments = async () => {
       rawList = payload.data.list
     }
 
-    console.log('获取到的原始评论列表:', rawList)
-
     // === 2. 数据清洗：给缺失的字段加上默认值 (关键步骤) ===
     rawList = rawList.map((item: any) => {
-      // 昵称兜底：如果后端没传 nickName，尝试用其他字段，最后用 "用户+ID"
+      // 昵称兜底
       const finalNickName = item.nickName || item.nickname || item.userName || item.user_name || `用户${item.userId || item.user_id || '未知'}`
-      
-      // 头像兜底：如果后端没传 avatarUrl，用默认图
+      // 头像兜底
       const finalAvatar = item.avatarUrl || item.avatar_url || item.headImg || item.head_img || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
-
       return {
         ...item,
         nickName: finalNickName,
         avatarUrl: finalAvatar,
-        // 统一 ID 字段名
         id: item.id || item.commentId,
         userId: item.userId || item.user_id,
         likeCount: item.likeCount || item.like_count || 0,
@@ -289,7 +275,7 @@ const fetchArticleComments = async () => {
         if (rootId && rootMap.has(rootId)) {
           rootMap.get(rootId)!.underCommentBody.push(c)
         } else {
-          // 孤儿评论处理：如果找不到父级，暂时作为根评论显示
+          // 孤儿评论处理
           if (!rootMap.has(c.id)) {
             const item: SingleMainCommentType = { mainCommentBody: c, underCommentBody: [] }
             result.push(item)
@@ -307,48 +293,6 @@ const fetchArticleComments = async () => {
   } catch (e) {
     ElMessage.error('获取评论失败')
     console.error(e)
-  }
-}
-
-/**
- * 点赞 / 取消点赞一条评论（主评论 or 子评论）
- * 依赖接口：POST /user/news/{commentId}/like
- * body: { id, liked }
- * 返回示例：{ likeCount: number, liked: boolean }
- */
-const toggleCommentLike = async (comment: ArticleCommentType) => {
-  const ok = await ensureLogin()
-  if (!ok) return
-
-  const prevLiked = comment.liked
-  const prevCount = comment.likeCount ?? 0
-  const nextLiked = !prevLiked
-
-  try {
-    const res = await instance.post(`/user/news/${comment.id}/like`, {
-      id: comment.id,
-    })
-    const data = res as any
-
-    // 以后端为准；没有就用本地计算的 nextLiked
-    if (typeof data.liked === 'boolean') {
-      comment.liked = data.liked
-    } else {
-      comment.liked = nextLiked
-    }
-
-    if (typeof data.likeCount === 'number') {
-      comment.likeCount = data.likeCount
-    } else if (typeof data.like_count === 'number') {
-      comment.likeCount = data.like_count
-    } else {
-      comment.likeCount = Math.max(prevCount + (comment.liked ? 1 : -1), 0)
-    }
-  } catch (err) {
-    // 回滚
-    comment.liked = prevLiked
-    comment.likeCount = prevCount
-    ElMessage.error('评论点赞失败：' + err)
   }
 }
 
@@ -383,6 +327,20 @@ const openUnderCommentDisplayPart = (mainCommentIndex: number) => {
   underCommentDrawerDisplay.value = true
 }
 
+// 新增：用于悬浮窗显示当前回复对象
+const replyingTarget = computed(() => {
+  if (targetId.value && parentId.value) {
+    const allComments = articleCommentList.value.flatMap(item => [item.mainCommentBody, ...item.underCommentBody])
+    return allComments.find(c => c.id === targetId.value)
+  }
+  return null
+})
+
+// 新增：取消回复
+function cancelReply() {
+  parentId.value = 0
+  targetId.value = 0
+}
 // 分页
 const handleCommentSizeChange = (newPageSize: number) => {
   setPageSize(newPageSize)
@@ -396,15 +354,12 @@ const handleCommentCurrentPageChange = (newPage: number) => {
 
 /**
  * 回复评论
- * 设置 parentId 和 targetId
  */
 const handleReply = (comment: ArticleCommentType) => {
   if (!comment.parentId) {
-    // 回复主评论
     parentId.value = comment.id
     targetId.value = 0
   } else {
-    // 回复子评论 (保持在同一个楼层)
     parentId.value = comment.parentId
     targetId.value = comment.id
   }
@@ -413,17 +368,12 @@ const handleReply = (comment: ArticleCommentType) => {
 
 /**
  * 发送评论
- * 修复点：
- * 1. 接收 tId (targetId) 参数
- * 2. 将 0 转换为 null 发送，防止后端因找不到 ID=0 的父评论而报 500 错误
  */
 const sendComment = async (articleId: number, pId: number = 0, tId: number = 0) => {
   const ok = await ensureLogin()
   if (!ok) return
 
-  // 再次检查 ID，防止脏数据
   if (!userSelfId.value) {
-     // 尝试重新读取
      try {
         const raw = localStorage.getItem('login_user')
         if (raw) {
@@ -444,7 +394,6 @@ const sendComment = async (articleId: number, pId: number = 0, tId: number = 0) 
   }
 
   try {
-    // 先过敏感词检测
     const res = await instance.post('/user/news/post/sensitive', {
       content: commentContent.value,
     })
@@ -455,12 +404,10 @@ const sendComment = async (articleId: number, pId: number = 0, tId: number = 0) 
       if (data) {
         ElMessage.warning('当前内容中包含敏感词，请重新检查输入')
       } else {
-        // 真正发评论
         const nextRes = await instance.post(`/user/news/${articleId}/comments`, {
           content: commentContent.value,
           parentId: pId === 0 ? null : pId,
           targetId: tId === 0 ? null : tId,
-          // 明确传递 userId
           userId: userSelfId.value
         })
 
@@ -484,59 +431,38 @@ const sendComment = async (articleId: number, pId: number = 0, tId: number = 0) 
   }
 }
 
-
 // 文章整体点赞（底部那个心）
-// 使用后端已有接口：POST /user/news/{articleId}/like
-// 返回 { likeCount, liked } 或类似结构
 const changeIsLiked = async () => {
-  // 1. 检查登录
   const ok = await ensureLogin()
   if (!ok) return
   if (!articleId) return
 
-  // 2. 记录旧状态（这是关键，后端需要知道你当前是啥状态）
   const prevLiked = isLiked.value
   const prevCount = likeCounts.value ?? 0
 
-  // 3. 乐观更新：前端先变，让用户感觉“秒开”
-  // 如果之前是 liked (true)，现在变成 false，数量 -1
-  // 如果之前是 unliked (false)，现在变成 true，数量 +1
   isLiked.value = !prevLiked
   likeCounts.value = prevCount + (prevLiked ? -1 : 1)
 
   try {
-    // 4. 发送请求
-    // 注意：axios.post 的第二个参数是 body，第三个参数是 config (包含 params)
-    // 后端 @RequestParam 需要参数在 url 上，所以用 params
     const res = await instance.post(
       `/user/news/${articleId}/like`, 
-      null, // body 为空
+      null,
       {
         params: {
-          liked: prevLiked // 告诉后端：我当前的状态是 prevLiked，请执行相反操作
+          liked: prevLiked
         }
       }
     )
     
     const data = res as any
 
-    // 5. 根据后端返回校准数据
-    // 假设后端返回 { code: 1, data: { liked: boolean, likeCount: number } } 
-    // 或者直接返回 map { liked: boolean, likeCount: number }
-    // 请根据实际后端返回结构调整下方取值逻辑
-    
-    // 如果后端返回了最新的 liked 状态
     if (data && typeof data.liked === 'boolean') {
       isLiked.value = data.liked
     }
-    
-    // 如果后端返回了最新的数量
     if (data && (typeof data.likeCount === 'number' || typeof data.like_count === 'number')) {
       likeCounts.value = data.likeCount ?? data.like_count
     }
-    
   } catch (err) {
-    // 6. 失败回滚
     isLiked.value = prevLiked
     likeCounts.value = prevCount
     ElMessage.error('操作失败，请稍后重试')
@@ -550,25 +476,19 @@ const dynamicCoverImagesWidth: Ref<string> = ref('')
 
 // 初始化
 const initPage = async () => {
-  await addViewCount()       // 先增加浏览量
-  await fetchArticleDetail() // 再拿详情
-  fetchArticleComments()     // 再拉评论
+  await addViewCount()
+  await fetchArticleDetail()
+  fetchArticleComments()
 }
 
 onMounted(() => {
-  // 从 localStorage 取当前登录用户信息
   try {
     const raw = localStorage.getItem('login_user')
      if (raw) {
       const info = JSON.parse(raw)
-      
-      // 1. 获取头像
       avatarUrl.value = info.avatarUrl || info.avatar_url || info.headImg || ''
-      
-      // 2. 获取 ID 
       const rawId = info.userId || info.id || info.uid
       userSelfId.value = rawId ? Number(rawId) : 0
-      
     }
   } catch (e) {
     console.error('解析本地登录用户信息失败', e)
@@ -617,7 +537,7 @@ onMounted(() => {
         <div class="articleUserContainer">
           <img
             style="width: 35px; height: 35px; object-fit: cover; border-radius: 999px"
-            :src="articleUserAvatarUrl"
+            :src="articleUserAvatarUrl || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'"
             alt=""
           />
           <div class="nameAndPublishTime">
@@ -626,20 +546,8 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- 分类 -->
-        <div class="categoryDisplay">
-          <div class="beautyBox">
-            <img
-              style="width: 30px; height: 30px"
-              :src="galgameImg"
-              alt=""
-            />
-            <span>{{ categoryName }}</span>
-          </div>
-        </div>
-
         <!-- 封面轮播 -->
-        <div class="coverImagesDisplayPart">
+        <div class="coverImagesDisplayPart" v-if="coverImagesSelf.length">
           <el-carousel
             class="el-carousel"
             indicator-position="outside"
@@ -697,7 +605,7 @@ onMounted(() => {
             <div class="mainInfo">
               <img
                 class="commentPartAvatarImg"
-                :src="article.mainCommentBody.avatarUrl"
+                :src="article.mainCommentBody.avatarUrl || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'"
                 alt=""
               />
               <div class="nameAndTimeAndContent">
@@ -711,28 +619,11 @@ onMounted(() => {
                   <span>{{ article.mainCommentBody.content }}</span>
                 </div>
 
-                <!-- 回复 & 点赞 -->
+                <!-- 只保留回复按钮 -->
                 <div class="replyAndLiked">
-                   <div class="replyAndNumberDisplay" @click="handleReply(article.mainCommentBody)">
+                  <div class="replyAndNumberDisplay" @click="handleReply(article.mainCommentBody)">
                     <el-icon size="20px"><ChatLineSquare /></el-icon>
                     <span>回复</span>
-                  </div>
-                  <div class="likeActivateAndLikeCountDisplay">
-                    <img
-                      v-if="!article.mainCommentBody.liked"
-                      class="commentLikedIcon"
-                      :src="Heart"
-                      alt="点赞"
-                      @click="toggleCommentLike(article.mainCommentBody)"
-                    />
-                    <img
-                      v-else
-                      class="commentLikedIcon"
-                      :src="Loved"
-                      alt="点赞"
-                      @click="toggleCommentLike(article.mainCommentBody)"
-                    />
-                    <span>{{ article.mainCommentBody.likeCount }}</span>
                   </div>
                 </div>
 
@@ -779,7 +670,7 @@ onMounted(() => {
               <div class="mainCommentDisplay">
                 <img
                   class="commentPartAvatarImg"
-                  :src="el_drawerDisplayCommentInfoLists.mainCommentBody.avatarUrl"
+                  :src="el_drawerDisplayCommentInfoLists.mainCommentBody.avatarUrl || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'"
                   alt=""
                 />
                 <div class="nameAndTimeAndContent">
@@ -792,28 +683,10 @@ onMounted(() => {
                   <div class="commentContent">
                     <span>{{ el_drawerDisplayCommentInfoLists.mainCommentBody.content }}</span>
                   </div>
-
                   <div class="replyAndLiked">
-                   <div class="replyAndNumberDisplay" @click="handleReply(el_drawerDisplayCommentInfoLists.mainCommentBody)">
+                    <div class="replyAndNumberDisplay" @click="handleReply(el_drawerDisplayCommentInfoLists.mainCommentBody)">
                       <el-icon size="20px"><ChatLineSquare /></el-icon>
                       <span>回复</span>
-                    </div>
-                    <div class="likeActivateAndLikeCountDisplay">
-                      <img
-                        v-if="!el_drawerDisplayCommentInfoLists.mainCommentBody.liked"
-                        class="commentLikedIcon"
-                        :src="Heart"
-                        alt="点赞"
-                        @click="toggleCommentLike(el_drawerDisplayCommentInfoLists.mainCommentBody)"
-                      />
-                      <img
-                        v-else
-                        class="commentLikedIcon"
-                        :src="Loved"
-                        alt="点赞"
-                        @click="toggleCommentLike(el_drawerDisplayCommentInfoLists.mainCommentBody)"
-                      />
-                      <span>{{ el_drawerDisplayCommentInfoLists.mainCommentBody.likeCount }}</span>
                     </div>
                   </div>
                 </div>
@@ -833,7 +706,7 @@ onMounted(() => {
                 >
                   <img
                     class="commentPartAvatarImg"
-                    :src="underComment.avatarUrl"
+                    :src="underComment.avatarUrl || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'"
                     alt=""
                   />
                   <div class="nameAndTimeAndContent">
@@ -855,28 +728,10 @@ onMounted(() => {
                       <span v-if="underComment.targetName">: </span>
                       <span>{{ underComment.content }}</span>
                     </div>
-
                     <div class="replyAndLiked">
                       <div class="replyAndNumberDisplay" @click="handleReply(underComment)">
                         <el-icon size="20px"><ChatLineSquare /></el-icon>
                         <span>回复</span>
-                      </div>
-                      <div class="likeActivateAndLikeCountDisplay">
-                        <img
-                          v-if="!underComment.liked"
-                          class="commentLikedIcon"
-                          :src="Heart"
-                          alt="点赞"
-                          @click="toggleCommentLike(underComment)"
-                        />
-                        <img
-                          v-else
-                          class="commentLikedIcon"
-                          :src="Loved"
-                          alt="点赞"
-                          @click="toggleCommentLike(underComment)"
-                        />
-                        <span>{{ underComment.likeCount }}</span>
                       </div>
                     </div>
                   </div>
@@ -905,49 +760,76 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- 底部导航 -->
-    <div class="footer">
-      <div class="userSelfFunctionDisplay">
-        <img
-          class="userSelfAvatar"
-          :src="avatarUrl"
-          alt="用户头像"
-        />
-        <div class="sendComponents">
-          <el-input
-            v-model="commentContent"
-            class="userCommentInput"
-            placeholder="本公主来喵两句"
-          />
-          <el-icon
-            :size="30"
-            @click="sendComment(articleId, parentId, targetId)"
-          >
-            <Promotion />
-          </el-icon>
-        </div>
-      </div>
+ <!-- 评论输入栏 -->
+    <div class="comment-input-bar">
 
-      <div class="likeComponent" @click="changeIsLiked">
-        <img
-          v-if="!isLiked"
-          class="LikedIcon"
-          :src="Heart"
-          alt="点赞"
-        />
-        <img
-          v-else
-          class="LikedIcon"
-          :src="Loved"
-          alt="已点赞"
-        />
-        <span>{{ likeCounts }}</span>
+  <!-- 中间输入框 -->
+  <el-input
+    v-model="commentContent"
+    class="comment-input"
+    :placeholder="replyingTarget ? `回复 @${replyingTarget.nickName}` : '本公主来喵两句'"
+    clearable
+    @keydown.enter.native="sendComment(articleId, parentId, targetId)"
+  />
+  <!-- 右侧按钮组 -->
+  <div class="comment-actions">
+        <el-icon
+          class="send-btn"
+          :size="36"
+          @click="sendComment(articleId, parentId, targetId)"
+        >
+          <Promotion />
+        </el-icon>
+
+        <el-button
+          class="like-btn-button"
+          type="text"
+          circle
+          size="medium"
+          @click="changeIsLiked"
+          aria-label="like"
+        >
+          <img :src="isLiked ? Loved : Heart" alt="like" class="like-img" />
+        </el-button>
+
+        <span class="like-num">{{ likeCounts }}</span>
       </div>
-    </div>
+</div>
+
+    <!-- 悬浮窗：显示当前是否为回复 -->
+    <transition name="fade">
+      <div v-if="replyingTarget" class="reply-float">
+        正在回复 <span class="reply-nick">@{{ replyingTarget.nickName }}</span>
+        <el-icon class="reply-cancel" @click="cancelReply"><Close /></el-icon>
+      </div>
+    </transition>
   </div>
 </template>
 
+
 <style scoped>
+  .like-btn-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 8px;
+  background: transparent;
+}
+
+.like-img {
+  display: block;
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  pointer-events: none; 
+  transition: transform 0.12s ease, filter 0.12s ease;
+  transform-origin: center;
+}
+.like-btn-button:hover .like-img { 
+  transform: scale(1.06); 
+}
+
 .allContentContainer {
   height: 100vh;
   display: flex;
@@ -1165,12 +1047,6 @@ onMounted(() => {
   display: flex;
   overflow: auto;
 }
-.footer {
-  border-top: 1px solid rgb(191, 191, 191);
-  padding: 10px;
-  display: flex;
-  justify-content: space-between;
-}
 .userSelfFunctionDisplay {
   display: flex;
   align-items: center;
@@ -1232,4 +1108,158 @@ onMounted(() => {
   flex-direction: column;
   overflow: hidden;
 }
+
+.allContentContainer {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+/* 头部 */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e6e6e6;
+}
+
+/* 中间可滚动区 */
+.middlePartDisplay {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 16px;
+}
+
+/* 评论区基础 */
+.commentDisplay { display: flex; flex-direction: column; gap: 18px; }
+
+/* 评论输入栏：现代、简洁、对齐良好 */
+.comment-input-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-top: 1px solid #eee;
+  background: #fff;
+  box-shadow: 0 -4px 18px rgba(11,20,40,0.03);
+  position: sticky;
+  bottom: 0;
+  z-index: 30;
+}
+
+/* 输入框拉伸占位 */
+.comment-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  --el-input-height: 44px;
+  font-size: 15px;
+}
+
+/* 调整 element-plus input wrapper */
+:deep(.comment-input .el-input__wrapper) {
+  height: 44px;
+  border-radius: 22px;
+  background: #f7f9fb;
+  border: 1px solid #e8eef6;
+  padding: 6px 12px;
+  box-shadow: none;
+}
+
+/* 按钮组对齐 */
+.comment-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.comment-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px; /* 增大间距以配合更大按钮 */
+}
+
+/* 发送按钮放大 */
+.send-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #409eff;
+  cursor: pointer;
+  padding: 10px; /* 增加点击区域 */
+  border-radius: 8px;
+  width: 44px;
+  height: 44px;
+}
+.send-btn:hover { background: rgba(64,158,255,0.06); }
+
+/* like 按钮放大 */
+.like-btn-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px; /* 增大点击区域 */
+  border-radius: 10px;
+  background: transparent;
+}
+
+/* 心形图片变大 */
+.like-img {
+  display: block;
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  pointer-events: none;
+  transition: transform 0.12s ease, filter 0.12s ease;
+  transform-origin: center;
+}
+.like-btn-button:hover .like-img { transform: scale(1.06); }
+
+/* 点赞数字对齐微调 */
+.like-num {
+  font-size: 13px;
+  color: #6b6b6b;
+  min-width: 22px;
+  text-align: center;
+  line-height: 1;
+  margin-left: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 悬浮回复气泡 */
+.reply-float {
+  position: fixed;
+  left: 50%;
+  bottom: 84px;
+  transform: translateX(-50%);
+  background: #fff;
+  border-radius: 14px;
+  padding: 8px 14px;
+  box-shadow: 0 6px 26px rgba(18,30,60,0.08);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.reply-nick { color: #409eff; font-weight: 600; }
+.reply-cancel { color: #999; cursor: pointer; }
+
+/* 其它简洁调整（保持页面整洁） */
+.commentPartAvatarImg { width: 40px; height: 40px; border-radius: 999px; object-fit: cover; }
+.singleComment { padding-bottom: 12px; border-bottom: 1px solid #f0f0f0; }
+.articleTitleDisplay { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
+
+/* 小屏自适应 */
+@media (max-width: 420px) {
+  .like-img { width: 20px; height: 20px; }
+  :deep(.comment-input .el-input__wrapper) { height: 40px; border-radius: 20px; }
+  .comment-input-bar { padding: 10px; }
+}
+
+
+
 </style>

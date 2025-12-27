@@ -66,6 +66,37 @@ const fetchUserInfo = async (id: string | number) => {
   }
 }
 
+// 头像上传
+const handleAvatarChange = async (files: File[]) => {
+  if (!files.length) return;
+  const file = files[0];
+  const formData = new FormData();
+  formData.append('image', file);
+
+  try {
+    // 上传到 OSS
+    const res = await instance.post('/user/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    const data = res.data || res;
+    if (data.code === 1 && data.imageUrl) {
+      // 上传成功后，更新用户表头像
+      await instance.put('/user/info', {
+        id: userInfo.value.id,
+        avatar: data.imageUrl
+      });
+      userInfo.value.avatar = data.imageUrl;
+      ElMessage.success('头像已更新');
+      showAvatarDialog.value = false;
+    } else {
+      ElMessage.error(data.message || '上传失败');
+    }
+  } catch (err: any) {
+    ElMessage.error(err.message || '上传失败');
+  }
+};
+
+
 const fetchMyContent = async () => {
   loading.value = true
   try {
@@ -139,6 +170,20 @@ const editSignature = () => {
 
 const handleEditPost = (post: any) => {
   router.push({ path: '/layout/addNewArticle', query: { id: post.id } });
+  ElMessageBox.confirm('确定要修改这条帖子吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+    .then(async () => {
+      const { data } = await instance.post('/admin/port/delete', { id: post.id });
+      if (data.code === 1) {
+        ElMessage.success('删除成功');
+        await fetchMyContent();
+      } else ElMessage.error(data.message || '删除失败');
+    })
+    .catch(() => {});
+ 
 };
 
 const handleDeletePost = (post: any) => {
@@ -272,7 +317,7 @@ const goDetail = (id: number) => {
     >
       <div class="upload-container">
         <p class="upload-tip">请选择图片上传，上传成功后关闭窗口即可</p>
-        <FileUpload>
+        <FileUpload @onChange="handleAvatarChange">
           <FileUploadGrid />
         </FileUpload>
       </div>

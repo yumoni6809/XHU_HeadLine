@@ -12,7 +12,7 @@
         <span class="word-count">{{ articleForm.title.length }}/30</span>
       </div>
 
-      <!-- 分类选择 (支持下拉 + 自定义输入) -->
+      <!-- 分类选择  -->
       <div class="form-item">
         <div class="label">发布到</div>
         <el-select
@@ -193,17 +193,37 @@ const submitArticle = async () => {
   if (!articleForm.value.content.trim()) return ElMessage.warning('请输入正文内容')
 
   submitting.value = true
-  
-  // 1. 处理分类 ID
+
   let finalCategoryId = articleForm.value.categoryId
+  let finalCategoryName = null
+
+  // 1. 处理分类：如果是字符串，先查本地，再调后端创建
   if (typeof finalCategoryId === 'string') {
     const match = categoryOptions.value.find(c => c.name === finalCategoryId)
     if (match) {
       finalCategoryId = match.id
     } else {
-      ElMessage.warning('暂不支持创建新分类，请选择列表中的现有分类')
-      submitting.value = false
-      return
+      // 新分类，先调后端创建
+      try {
+        const res = await instance.post('/user/news/category/add', { name: finalCategoryId })
+        const data = res.data || res
+        if (data.code === 1 && data.id) {
+          finalCategoryId = data.id
+          // 动态加入本地分类选项
+          categoryOptions.value.push({ id: data.id, name: articleForm.value.categoryId })
+        } else {
+          // 兜底：如果后端返回已存在
+          if (data.id) {
+            finalCategoryId = data.id
+          } else {
+            // 后端没返回 id，则用 categoryName 兜底
+            finalCategoryName = articleForm.value.categoryId
+          }
+        }
+      } catch (e) {
+        // 网络异常时，直接用 categoryName 兜底
+        finalCategoryName = articleForm.value.categoryId
+      }
     }
   }
 
@@ -226,34 +246,32 @@ const submitArticle = async () => {
     return
   }
 
-  // 3. 构造 Payload (显式构造，确保字段准确)
+  // 3. 构造 Payload
   const payload = { 
     authorId: currentUserId.value, 
     title: articleForm.value.title,
     content: articleForm.value.content,
-    categoryId: finalCategoryId,
-    // 将数组转为 JSON 字符串
     coverImages: JSON.stringify(articleForm.value.coverImages),
     status: 1
   }
-  
-  try {
-    console.log('正在发送 Payload:', payload)
-    const res = await instance.post('/user/news/post', payload)
-    
-    const resData = res.data || res
-    console.log('后端返回结果:', resData)
+  if (finalCategoryId) {
+    payload.categoryId = finalCategoryId
+  }
+  if (finalCategoryName) {
+    payload.categoryName = finalCategoryName
+  }
 
+  try {
+    const res = await instance.post('/user/news/post', payload)
+    const resData = res.data || res
     if (resData.id != null || resData.code === 1 || resData.code === 200) {
       ElMessage.success('发布成功！待审核中')
       localStorage.removeItem('articleDraft')
       router.push('/layout/home')
     } else {
-      console.warn('发布被判定为失败，返回数据:', resData)
       ElMessage.error(resData.message || '发布失败，请检查网络或重试')
     }
   } catch (err) {
-    console.error('发布请求异常:', err)
     ElMessage.error(err.message || '网络异常，请稍后重试')
   } finally {
     submitting.value = false

@@ -163,30 +163,71 @@ public class UserPostController {
     /**
      * 用户端发表帖子
      */
+    // java
+// 替换 UserPostController 中的 PostPort 方法
     @PostMapping("/news/post")
     public Map<String, Object> PostPort(@RequestBody Map<String, Object> params) {
-        // 从参数中获取属性
-        long authorId = Long.parseLong(params.get("authorId").toString());
-        String title = params.get("title").toString();
-        String content = params.get("content").toString();
-        int categoryId = Integer.parseInt(params.getOrDefault("categoryId", "0").toString());
-        String coverImages = params.get("coverImages").toString();
-        int status = 0; // 默认需要审核
+        try {
+            // 1. authorId（必须）
+            if (params.get("authorId") == null) {
+                return Map.of("code", 0, "message", "authorId 缺失");
+            }
+            long authorId;
+            try { authorId = Long.parseLong(params.get("authorId").toString()); }
+            catch (Exception e) { return Map.of("code", 0, "message", "authorId 格式错误"); }
 
-        // 赋值给返回对象
-        NewsPortDTO post = new NewsPortDTO();
-        post.setAuthorId(authorId);
-        post.setTitle(title);
-        post.setContent(content);
-        post.setCategoryId(categoryId);
-        post.setCoverImages(coverImages);
-        post.setStatus(status);
+            // 2. title / content 必须
+            Object t = params.get("title");
+            Object c = params.get("content");
+            if (t == null || c == null) {
+                return Map.of("code", 0, "message", "title 或 content 缺失");
+            }
+            String title = t.toString();
+            String content = c.toString();
 
-        //  复用保存帖子方法
-        Long newId = newPortServiceImpl.saveNewsPort(post);
+            // 3. categoryId 优先，若为 0 或未传则检查 categoryName
+            int categoryId = 0;
+            Object catIdObj = params.get("categoryId");
+            if (catIdObj != null) {
+                try { categoryId = Integer.parseInt(catIdObj.toString()); }
+                catch (Exception ignored) { categoryId = 0; }
+            }
+            if (categoryId <= 0) {
+                Object catNameObj = params.get("categoryName");
+                if (catNameObj != null) {
+                    String catName = catNameObj.toString().trim();
+                    if (!catName.isEmpty()) {
+                        // 查找或新增分类
+                        var cat = categoryService.findByName(catName);
+                        if (cat == null) {
+                            cat = categoryService.addCategory(catName);
+                        }
+                        if (cat != null) categoryId = cat.getId();
+                    }
+                }
+            }
 
-        return Map.of("id", newId);
+            // 4. 其它字段
+            String coverImages = params.getOrDefault("coverImages", "").toString();
+            int status = 0; // 默认需要审核
+
+            // 5. 构造 DTO 并保存
+            NewsPortDTO post = new NewsPortDTO();
+            post.setAuthorId(authorId);
+            post.setTitle(title);
+            post.setContent(content);
+            post.setCategoryId(categoryId);
+            post.setCoverImages(coverImages);
+            post.setStatus(status);
+
+            Long newId = newPortServiceImpl.saveNewsPort(post);
+            return Map.of("id", newId);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Map.of("code", 0, "message", "服务器内部错误");
+        }
     }
+
 
     // 获取类别
     @GetMapping("/news/category/list")
@@ -239,7 +280,6 @@ public class UserPostController {
     public Map<String, Object> settinChange(@RequestBody Map<String, Object> params) {
         HashMap<String, Object> res = new HashMap<>();
 
-        // 尝试读取 id，若有则加载已有用户并更新；否则新建
         Long id = null;
         if (params.get("id") != null) {
             try {
@@ -267,6 +307,12 @@ public class UserPostController {
         if (n != null) {
             String nickname = n.toString();
             if (!nickname.isBlank()) user.setNickName(nickname);
+        }
+        // 新增头像字段处理
+        Object a = params.get("avatar");
+        if (a != null) {
+            String avatar = a.toString();
+            if (!avatar.isBlank()) user.setAvatarUrl(avatar);
         }
 
         try {
@@ -301,5 +347,37 @@ public class UserPostController {
             return Map.of("code", 1, "message", "未检测到敏感词");
         }
     }
+
+    // 用户端添加分类
+    @PostMapping("/news/category/add")
+    public Map<String, Object> addCategory(@RequestBody Map<String, Object> body) {
+        String name = (body.get("name") != null) ? body.get("name").toString().trim() : "";
+        if (name.isEmpty()) {
+            return Map.of("code", 0, "message", "分类名不能为空");
+        }
+        try {
+            // 检查是否已存在同名分类
+            var exists = categoryService.findByName(name);
+            if (exists != null) {
+                return Map.of("code", 1, "message", "已存在", "id", exists.getId());
+            }
+            var newCat = categoryService.addCategory(name);
+            return Map.of("code", 1, "message", "创建成功", "id", newCat.getId());
+        } catch (Exception e) {
+            return Map.of("code", 0, "message", "创建失败");
+        }
+    }
+
+    @DeleteMapping("/news/comment/{id}")
+    public Map<String, Object> deleteComment(@PathVariable int id) {
+        try {
+            boolean ok = commentService.deleteComment(id);
+            return Map.of("code", ok ? 1 : 0, "message", ok ? "删除成功" : "删除失败");
+        } catch (Exception e) {
+            return Map.of("code", 0, "message", "服务器内部错误");
+        }
+    }
+
+
 
 }

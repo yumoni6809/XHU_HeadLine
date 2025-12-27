@@ -20,5 +20,6 @@ public interface CommentMapper {
                                        @Param("offset") int offset,
                                        @Param("size") int size);
 
-    List<Comment> listUserComments(@Param("userId") Long userId); // 返回列表
+    // 修改返回类型，返回用户评论列表
+    List<Comment> listUserComments(@Param("userId") Long userId);
 }

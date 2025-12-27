@@ -10,4 +10,5 @@ public interface CommentService {
     boolean addComment(Comment comment);
 
     List<Comment> listUserComments(Long userId);
+
 }

@@ -2,8 +2,8 @@
 <script setup>
 import Heart from '@/asset/img/Love.svg'
 import Loved from '@/asset/img/lamb-love.svg'
-import { onMounted, ref } from 'vue'
-import { Comment, View } from '@element-plus/icons-vue'
+import { onMounted, onUnmounted, ref } from 'vue'
+import { Comment, View, Loading } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import { useAnimationTransitionStore } from '@/stores';
 import request from '@/utils/axios/main.js'
@@ -22,25 +22,33 @@ const articleList = ref([])
 const loading = ref(false) // 增加加载状态
 const bgUrl = ref('') // 背景图片路径
 
+// 文章查询分页
+const page = ref(1)
+const pageSize = 10
+const hasMore = ref(true)
+// 默认按时间排序，不显示切换按钮
+const sort = ref('time')
+const timeRange = ref('all')
+
 // 获取文章列表数据
-const getArticleList = async () => {
+const getArticleList = async (reset = false) => {
+  if (loading.value) return
   loading.value = true
   try {
+    const params = { page: page.value, size: pageSize, sort: sort.value }
+    // 新增：时间范围参数
+    if (timeRange.value && timeRange.value !== 'all') {
+      params.timeRange = timeRange.value
+    }
     const res = await request.get('/user/news', {
-      params: { pageNum: 1, pageSize: 20 },
+      params,
       skipAuthRedirect: true 
     })
-
-    // 若后端仍返回 code 判定
     const list = res?.data?.list ?? res?.data ?? res?.rows ?? res ?? []
-    
-    articleList.value = (Array.isArray(list) ? list : [])
+    const articles = (Array.isArray(list) ? list : [])
       .map((item) => {
-        // --- 修复封面图解析逻辑 ---
         let images = []
-        // 兼容后端可能返回的字段名: coverImages 或 coverImage
         const rawCover = item.coverImages || item.coverImage || ''
-        
         if (Array.isArray(rawCover)) {
           images = rawCover
         } else if (typeof rawCover === 'string' && rawCover.trim() !== '') {
@@ -55,19 +63,22 @@ const getArticleList = async () => {
             images = str.split(',')
           }
         }
-
         return {
           ...item,
           coverImages: images.filter(url => url && typeof url === 'string' && url.length > 0),
-          avatarUrl: item.avatar_url ?? item.avatarUrl ?? item.authorAvatar ?? '', // 增加 authorAvatar 兼容
+          avatarUrl: item.avatar_url ?? item.avatarUrl ?? item.authorAvatar ?? '',
           authorName: item.authorName ?? item.source ?? '匿名用户',
-          // 确保 status 存在，如果没有则默认为 1 (视情况而定，这里假设后端返回了 status)
           status: item.status !== undefined ? item.status : 1 
         }
       })
-      // --- 核心修改：只显示 status 为 1 的帖子 ---
       .filter(item => item.status === 1)
 
+    if (reset) {
+      articleList.value = articles
+    } else {
+      articleList.value = [...articleList.value, ...articles]
+    }
+    hasMore.value = articles.length === pageSize
   } catch (error) {
     if (error?.response?.status === 401) {
       ElMessage.warning('该接口目前要求登录，需后端放开匿名访问')
@@ -77,8 +88,26 @@ const getArticleList = async () => {
     }
   } finally {
     loading.value = false
+    setTimeout(() => {
+      const docHeight = document.documentElement.scrollHeight
+      const winHeight = window.innerHeight
+      if (hasMore.value && docHeight <= winHeight + 100 && articleList.value.length > 0) {
+        page.value += 1
+        getArticleList()
+      }
+    }, 100)
   }
 }
+
+// 监听 layout 的筛选条件变化
+const onFilterChange = (e) => {
+  const detail = e.detail || {}
+  sort.value = detail.sort || 'time'
+  timeRange.value = detail.timeRange || 'all'
+  page.value = 1
+  getArticleList(true)
+}
+
 
 // 点击帖子标题和摘要跳转到帖子首页
 const jumpToArticleDetail = (articleId) => {
@@ -107,28 +136,49 @@ const handleLike = (article) => {
   }
 }
 
+// 无限滚动加载更多
+const handleScroll = () => {
+  if (loading.value || !hasMore.value) return
+  const scrollTop = window.scrollY || document.documentElement.scrollTop
+  const windowHeight = window.innerHeight
+  const docHeight = document.documentElement.scrollHeight
+  // 距离底部200px时自动加载
+  if (scrollTop + windowHeight + 200 >= docHeight) {
+    page.value += 1
+    getArticleList()
+  }
+}
+
 onMounted(async () => {
-  // 读取本地存储的背景图片设置
   const storedBg = localStorage.getItem('backgroundImage')
   if (storedBg) {
     bgUrl.value = storedBg
   }
+  articleList.value = []
+  page.value = 1
+  hasMore.value = true
+  await getArticleList(true)
+  window.addEventListener('scroll', handleScroll)
+  // 监听筛选事件
+  window.addEventListener('homeFilterChange', onFilterChange)
+})
 
-  await getArticleList() // 页面加载时获取数据
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+  window.removeEventListener('homeFilterChange', onFilterChange)
 })
 </script>
 
 <template>
   <!-- 动态绑定背景样式 -->
   <div 
-    class="allContentContainer" 
-    v-loading="loading"
+    class="allContentContainer"
     :style="bgUrl ? { backgroundImage: `url(${bgUrl})` } : { backgroundColor: '#ffffff' }"
   >
-
     <!-- 显示空状态 -->
     <el-empty v-if="!loading && articleList.length === 0" description="暂无文章内容"></el-empty>
 
+    <!-- 文章列表 -->
     <div class="singleArticle" v-for="article in articleList" :key="article.hid || article.id">
       <!-- 发帖人信息展示 -->
       <div class="userInfoContainer" @click="jumpToArticleDetail(article.hid || article.id)">
@@ -207,6 +257,16 @@ onMounted(async () => {
         </div>
       </div>
     </div>
+
+    <!-- 三点跳动加载动画 -->
+    <div v-if="loading" class="fancy-loading">
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+    </div>
+    <div v-if="!hasMore && !loading" style="text-align:center;color:#aaa;font-size:13px;margin:16px 0;">
+      没有更多了
+    </div>
   </div>
 </template>
 
@@ -242,9 +302,6 @@ onMounted(async () => {
   gap: 12px;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.6);
-  
-  /* 移除 hover 动画，避免移动端点击粘滞 bug */
-  /* transition: transform 0.2s ease; */
 }
 
 /* 用户信息区域 */
@@ -276,7 +333,7 @@ onMounted(async () => {
 
 /* 标题区域 */
 .articleTitleContainer {
-  font-size: 17px; /* 稍微调小一点点适配移动端 */
+  font-size: 17px;
   font-weight: bold;
   color: #303133;
   line-height: 1.4;
@@ -290,7 +347,7 @@ onMounted(async () => {
   font-size: 14px;
   line-height: 1.6;
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* 最多显示2行 */
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -300,16 +357,16 @@ onMounted(async () => {
 .coverImageDisplay {
   display: flex;
   flex-direction: row;
-  gap: 2%; /* 间距使用百分比 */
+  gap: 2%;
   margin-top: 4px;
 }
 
 /* 移动端适配的图片容器 */
 .singleCoverContainer {
   position: relative;
-  width: 32%; /* 约三分之一宽度 */
-  aspect-ratio: 1 / 1; /* 保持正方形 */
-  height: auto; /* 高度由宽度决定 */
+  width: 32%;
+  aspect-ratio: 1 / 1;
+  height: auto;
   border-radius: 8px;
   overflow: hidden;
   flex-shrink: 0;
@@ -345,7 +402,7 @@ onMounted(async () => {
   justify-content: space-between;
   margin-top: 4px;
   padding-top: 12px;
-  border-top: 1px solid rgba(0, 0, 0, 0.05); /* 更淡的分割线 */
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .componentsCommonStyle {
@@ -358,7 +415,6 @@ onMounted(async () => {
   font-size: 13px;
 }
 
-/* 移动端点击反馈 */
 .componentsCommonStyle:active {
   opacity: 0.7;
 }
@@ -371,5 +427,35 @@ onMounted(async () => {
 .action-icon {
   width: 16px;
   height: 16px;
+  height: 16px;
 }
+
+/* 点跳动动画 */
+.fancy-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 40px;
+  margin: 16px 0;
+}
+.fancy-loading .dot {
+  width: 10px;
+  height: 10px;
+  margin: 0 6px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #409EFF 60%, #67C23A 100%);
+  animation: bounce 1.2s infinite;
+  display: inline-block;
+}
+.fancy-loading .dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.fancy-loading .dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+@keyframes bounce {
+  0%, 80%, 100% { transform: translateY(0);}
+  40% { transform: translateY(-18px);}
+}
+
 </style>
