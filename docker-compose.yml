@@ -1,0 +1,99 @@
+version: "3.8"
+
+# Deployment notes:
+# Option A - push to registry:
+#   docker tag xhu_headline_backend:latest myregistry.example.com/myrepo/xhu_headline_backend:latest
+#   docker push myregistry.example.com/myrepo/xhu_headline_backend:latest
+#   on server: docker pull myregistry.example.com/myrepo/xhu_headline_backend:latest
+#
+# Option B - export/import tar:
+#   docker save -o backend.tar xhu_headline_backend:latest
+#   scp backend.tar user@server:/tmp/
+#   on server: docker load -i /tmp/backend.tar
+#
+# On server (after images available or registry pull):
+#   git clone <repo> /opt/xhu_headline && cd /opt/xhu_headline
+#   create .env (DB_PASSWORD etc) next to docker-compose.yml
+#   docker compose pull || true
+#   docker compose up -d --remove-orphans
+#   docker compose logs -f
+#
+# Use systemd or other mechanism to run docker compose on boot if needed.
+
+# Troubleshooting (pull timeout / context deadline exceeded)
+# 1) Quick network checks on the host:
+#    ping -c 4 8.8.8.8
+#    nslookup registry-1.docker.io 8.8.8.8
+#    curl -v https://registry-1.docker.io/v2/    # should return 401 or 200-ish (accessible)
+#
+# 2) Try Docker-specific steps:
+#    docker login    # provide Docker Hub credentials
+#    docker pull <image>:<tag>  # try pulling one image directly to see detailed error
+#    docker compose pull --verbose
+#
+# 3) If DNS/timeouts: configure daemon.json (Linux: /etc/docker/daemon.json or Docker Desktop daemon settings)
+#    {
+#      "dns": ["8.8.8.8","1.1.1.1"],
+#      "registry-mirrors": ["https://registry-mirror.example.com"]
+#    }
+#    then restart docker: sudo systemctl restart docker  (or Restart Docker Desktop)
+#
+# 4) Workaround if registry unreachable:
+#    # On local machine where images are built:
+#    docker save -o backend.tar xhu_headline_backend:latest
+#    scp backend.tar user@server:/tmp/
+#    # On server:
+#    docker load -i /tmp/backend.tar
+#
+# 5) Check Docker Desktop Troubleshoot / Diagnose logs if using Docker Desktop.
+#
+# Only after fixing connectivity: retry `docker compose pull` or `docker compose up -d`.
+
+# Local image transfer (export/import):
+# 1. On your local machine:
+#    docker save -o xhu_headline_backend.tar xhu_headline_backend:latest
+#    docker save -o xhu_headline_admin.tar xhu_headline_admin:latest
+#    docker save -o xhu_headline_user.tar xhu_headline_user:latest
+# 2. Transfer these .tar files to your server (scp, U disk, etc).
+# 3. On your server:
+#    docker load -i /tmp/xhu_headline_backend.tar
+#    docker load -i /tmp/xhu_headline_admin.tar
+#    docker load -i /tmp/xhu_headline_user.tar
+# 4. Then run: docker compose up -d
+
+services:
+  backend:
+    build:
+      context: ./back-end/XHU_HeadLine
+      dockerfile: Dockerfile
+    image: xhu_headline_backend:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    restart: unless-stopped
+    # optional: load env from .env (create .env with secrets on server)
+    env_file:
+      - .env
+
+  admin_ui:
+    build:
+      context: ./front/headline_admin_ui
+      dockerfile: Dockerfile
+    image: xhu_headline_admin:latest
+    ports:
+      - "8081:80"
+    restart: unless-stopped
+
+  user_ui:
+    build:
+      context: ./front/headline_user_ui
+      dockerfile: Dockerfile
+    image: xhu_headline_user:latest
+    ports:
+      - "8082:80"
+    restart: unless-stopped
+
+# Notes:
+# - Backend may require database/network configuration; set env or add a db service as needed.
+# - Build will run Maven and npm inside the containers; ensure the host has network access to fetch dependencies.
