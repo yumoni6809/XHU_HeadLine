@@ -1,5 +1,6 @@
+// java
+// File: `src/main/java/com/xhu/headline_server/Interceptor/TokenInterceptor.java`
 package com.xhu.headline_server.Interceptor;
-
 
 import com.xhu.headline_server.utils.JwtUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,47 +19,38 @@ public class TokenInterceptor implements HandlerInterceptor {
                              HttpServletResponse response,
                              Object handler) throws Exception {
 
-        // 1. 获取请求 url
-        String url = request.getRequestURL().toString();
+        // 记录请求便于排查
+        log.info("incoming: method={} uri={} remote={} token-header={}",
+                request.getMethod(), request.getRequestURI(), request.getRemoteAddr(), request.getHeader("token"));
 
-        // 2. 特定接口直接放行
-        if (url.contains("/admin/login")) {
-            log.info("登录请求，直接放行: {}", url);
-            return true;
-        }
-        if (url.contains("/user/login")) {
-            log.info("登录请求，直接放行: {}", url);
-            return true;
-        }
-        if (url.contains("/user/register")) {
-            log.info("注册请求，直接放行: {}", url);
-            return true;
-        }
-        if (url.contains("/news")) {
+        // 放行预检请求
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            response.setStatus(HttpServletResponse.SC_OK);
             return true;
         }
 
+        String uri = request.getRequestURI(); // 使用 URI 便于匹配 /api 前缀或无前缀情况
 
-        // 3. 从请求头获取 token
+        // 放行公开接口（兼容可能包含 /api 前缀）
+        if (uri.contains("/admin/login") || uri.contains("/user/login") || uri.contains("/user/register") || uri.contains("/news")) {
+            return true;
+        }
+
         String jwt = request.getHeader("token");
-
-        // 4. 判断 token 是否为空
         if (!StringUtils.hasLength(jwt)) {
-            log.info("请求未携带 token，拒绝访问");
+            log.info("请求未携带 token，拒绝访问 uri={}", uri);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return false;
         }
 
-        // 5. 解析 token
         try {
             JwtUtils.parseJWT(jwt);
         } catch (Exception e) {
-            log.info("token 解析失败，拒绝访问", e);
+            log.info("token 解析失败，拒绝访问 uri={}", uri, e);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return false;
         }
 
-        // 6. 放行
         return true;
     }
 }
