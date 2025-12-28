@@ -31,7 +31,7 @@ public class TokenInterceptor implements HandlerInterceptor {
 
         String uri = request.getRequestURI(); // 使用 URI 便于匹配 /api 前缀或无前缀情况
 
-        // 放行公开接口（兼容可能包含 /api 前缀）
+        // 放行公开接口
         if (uri.contains("/admin/login") || uri.contains("/user/login") || uri.contains("/user/register") || uri.contains("/news")) {
             return true;
         }

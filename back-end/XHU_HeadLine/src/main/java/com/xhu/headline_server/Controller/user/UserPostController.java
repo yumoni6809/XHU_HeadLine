@@ -247,7 +247,6 @@ public class UserPostController {
         }
         try {
             // 调用阿里云工具类 将上传文件存储到oss服务器并且返回链接 加入数据库
-            // 不需要理解阿里云工具类如何使用
             String imageUrl = aliyunOSSOperator.upload(image.getBytes(), image.getOriginalFilename());
             res.put("code", 1);
             res.put("imageUrl", imageUrl);

@@ -1,4 +1,4 @@
-// java
+// 解决跨域问题的配置类
 package com.xhu.headline_server.config;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -11,7 +11,7 @@ import java.util.Arrays;
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
 
-    @Value("${cors.allowed-origins=http://117.72.193.98,http://117.72.193.98:32932}")
+    @Value("${cors.allowed-origins=http://117.72.193.98,http://117.72.193.98:32932,http://yumoni.top:32932,http://localhost:5173,http://www.yumoni.top,http://w.yumoni.top:32932}")
     private String allowedOrigins;
 
     @Override
