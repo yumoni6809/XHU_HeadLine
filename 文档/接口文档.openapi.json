@@ -1,0 +1,1861 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "默认模块",
+    "description": "涵盖已实现的后台管理端与用户端接口，数据结构参考 `user`、`news_category`、`news_post`、`comment`、`likes`、`sensitive_word` 等核心表。",
+    "version": "1.0.0"
+  },
+  "tags": [
+    {
+      "name": "Admin-Auth"
+    },
+    {
+      "name": "Admin-User"
+    },
+    {
+      "name": "Admin-News"
+    },
+    {
+      "name": "User-Auth"
+    },
+    {
+      "name": "User-News"
+    },
+    {
+      "name": "User-Comment"
+    },
+    {
+      "name": "User-Upload"
+    }
+  ],
+  "paths": {
+    "/admin/login": {
+      "post": {
+        "summary": "管理员登录",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Admin-Auth"
+        ],
+        "parameters": [
+          {
+            "name": "Token",
+            "in": "header",
+            "description": "",
+            "example": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY",
+            "schema": {
+              "type": "string",
+              "default": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "登录成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/admin/users": {
+      "get": {
+        "summary": "分页查询用户",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Admin-User"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "enum": [
+                0,
+                1,
+                2
+              ]
+            }
+          },
+          {
+            "name": "Token",
+            "in": "header",
+            "description": "",
+            "example": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY",
+            "schema": {
+              "type": "string",
+              "default": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "查询成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedUserResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      },
+      "post": {
+        "summary": "新增用户",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Admin-User"
+        ],
+        "parameters": [
+          {
+            "name": "Token",
+            "in": "header",
+            "description": "",
+            "example": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY",
+            "schema": {
+              "type": "string",
+              "default": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminCreateUserRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicAckResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/admin/users/{id}": {
+      "put": {
+        "summary": "更新用户信息",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Admin-User"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": 0,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "Token",
+            "in": "header",
+            "description": "",
+            "example": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY",
+            "schema": {
+              "type": "string",
+              "default": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminUpdateUserRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicAckResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      },
+      "delete": {
+        "summary": "逻辑删除用户",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Admin-User"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": 0,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "Token",
+            "in": "header",
+            "description": "",
+            "example": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY",
+            "schema": {
+              "type": "string",
+              "default": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "删除成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicAckResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/admin/news": {
+      "get": {
+        "summary": "分页查询帖子（后台）",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Admin-News"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "categoryId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "enum": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          },
+          {
+            "name": "Token",
+            "in": "header",
+            "description": "",
+            "example": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY",
+            "schema": {
+              "type": "string",
+              "default": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "查询成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedNewsResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/admin/news/{id}": {
+      "get": {
+        "summary": "查看帖子详情（后台）",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Admin-News"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": 0,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "Token",
+            "in": "header",
+            "description": "",
+            "example": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY",
+            "schema": {
+              "type": "string",
+              "default": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "查询成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NewsPostResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      },
+      "put": {
+        "summary": "修改帖子内容",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Admin-News"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": 0,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "Token",
+            "in": "header",
+            "description": "",
+            "example": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY",
+            "schema": {
+              "type": "string",
+              "default": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewsPostUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "修改成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicAckResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/admin/news/{id}/status": {
+      "patch": {
+        "summary": "更新帖子状态/审核",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Admin-News"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": 0,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "Token",
+            "in": "header",
+            "description": "",
+            "example": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY",
+            "schema": {
+              "type": "string",
+              "default": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewsStatusUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicAckResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/admin/news/import": {
+      "post": {
+        "summary": "导入外部资讯",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Admin-News"
+        ],
+        "parameters": [
+          {
+            "name": "Token",
+            "in": "header",
+            "description": "",
+            "example": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY",
+            "schema": {
+              "type": "string",
+              "default": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewsImportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "导入结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicAckResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/user/login": {
+      "post": {
+        "summary": "用户登录",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "User-Auth"
+        ],
+        "parameters": [
+          {
+            "name": "Token",
+            "in": "header",
+            "description": "",
+            "example": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY",
+            "schema": {
+              "type": "string",
+              "default": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "登录成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/user/register": {
+      "post": {
+        "summary": "用户注册",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "User-Auth"
+        ],
+        "parameters": [
+          {
+            "name": "Token",
+            "in": "header",
+            "description": "",
+            "example": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY",
+            "schema": {
+              "type": "string",
+              "default": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "注册成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicAckResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/user/news/post/sensitive": {
+      "post": {
+        "summary": "敏感词检测",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "Token",
+            "in": "header",
+            "description": "",
+            "example": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY",
+            "schema": {
+              "type": "string",
+              "default": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              },
+              "example": {
+                "content": "这里是要检测的文章内容"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/user/news": {
+      "get": {
+        "summary": "用户端资讯列表",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "User-News"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "categoryId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "time",
+                "hot"
+              ],
+              "default": "time"
+            }
+          },
+          {
+            "name": "Token",
+            "in": "header",
+            "description": "",
+            "example": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY",
+            "schema": {
+              "type": "string",
+              "default": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "查询成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedNewsResponse"
+                },
+                "example": {
+                  "code": 59,
+                  "message": "et velit Duis voluptate",
+                  "data": {
+                    "totalCount": 2,
+                    "list": [
+                      {
+                        "id": 62,
+                        "title": "资产阶级绿轻松围绕着哇哇哇熟人协议",
+                        "categoryId": 73,
+                        "categoryName": "邹治涛",
+                        "authorId": 26,
+                        "authorName": "司徒三锋",
+                        "avatarUrl": "https://avatars.githubusercontent.com/u/1259628",
+                        "coverImages": [
+                          "https://loremflickr.com/400/400?lock=8259009982500489",
+                          "https://loremflickr.com/400/400?lock=8924121678917844",
+                          "https://loremflickr.com/400/400?lock=3695573934466273"
+                        ],
+                        "status": 30,
+                        "viewCount": 39,
+                        "likeCount": 42,
+                        "commentCount": 100,
+                        "createTime": "2025-07-17 16:08:11"
+                      },
+                      {
+                        "id": 96,
+                        "title": "哇哦老实撕全部一道哦",
+                        "categoryId": 39,
+                        "categoryName": "崔雪",
+                        "authorId": 38,
+                        "authorName": "督欣怡",
+                        "avatarUrl": "https://avatars.githubusercontent.com/u/28815064",
+                        "coverImages": [
+                          "https://loremflickr.com/400/400?lock=3073712194437112",
+                          "https://loremflickr.com/400/400?lock=2599385069593345",
+                          "https://loremflickr.com/400/400?lock=6315978228641045"
+                        ],
+                        "status": 87,
+                        "viewCount": 83,
+                        "likeCount": 78,
+                        "commentCount": 24,
+                        "createTime": "2025-05-03 07:16:03"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/user/news/{id}": {
+      "get": {
+        "summary": "资讯详情",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "User-News"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": 0,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "Token",
+            "in": "header",
+            "description": "",
+            "example": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY",
+            "schema": {
+              "type": "string",
+              "default": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "查询成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NewsPostResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/user/news/{id}/view": {
+      "post": {
+        "summary": "增加浏览量",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "User-News"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": 0,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "Token",
+            "in": "header",
+            "description": "",
+            "example": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY",
+            "schema": {
+              "type": "string",
+              "default": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "最新浏览量",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ViewCount": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/user/news/{id}/like": {
+      "post": {
+        "summary": "点赞/取消点赞",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "User-News"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": 0,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "liked",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "Token",
+            "in": "header",
+            "description": "",
+            "example": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY",
+            "schema": {
+              "type": "string",
+              "default": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "操作结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LikeResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/user/news/post": {
+      "post": {
+        "summary": "用户发帖",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "User-News"
+        ],
+        "parameters": [
+          {
+            "name": "Token",
+            "in": "header",
+            "description": "",
+            "example": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY",
+            "schema": {
+              "type": "string",
+              "default": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewsPostCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "提交成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "description": "新帖 ID"
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/user/news/category/list": {
+      "get": {
+        "summary": "获取全部分类",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "User-News"
+        ],
+        "parameters": [
+          {
+            "name": "Token",
+            "in": "header",
+            "description": "",
+            "example": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY",
+            "schema": {
+              "type": "string",
+              "default": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "查询成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryListResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/user/news/{id}/comments": {
+      "get": {
+        "summary": "评论分页",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "User-Comment"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": 1,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": 1,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": 1,
+            "schema": {
+              "type": "integer",
+              "default": 5
+            }
+          },
+          {
+            "name": "Token",
+            "in": "header",
+            "description": "",
+            "example": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY",
+            "schema": {
+              "type": "string",
+              "default": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "查询成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedCommentResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      },
+      "post": {
+        "summary": "发表评论/回复",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "User-Comment"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": 10070,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "Token",
+            "in": "header",
+            "description": "",
+            "example": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY",
+            "schema": {
+              "type": "string",
+              "default": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommentCreateRequest"
+              },
+              "example": {
+                "content": "dolore",
+                "parentId": 1
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "发表成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicAckResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/user/upload": {
+      "post": {
+        "summary": "文件上传（OSS）",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "User-Upload"
+        ],
+        "parameters": [
+          {
+            "name": "Token",
+            "in": "header",
+            "description": "",
+            "example": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY",
+            "schema": {
+              "type": "string",
+              "default": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjowLCJ1c2VyTmFtZSI6Inl1bW9uaSIsInVzZXJJZCI6MSwiZXhwIjoxNzY1MTQxMDYxfQ.1NFaJvfOLOlzKE90CYFRk5UzYs_4siIgXmIrnvcaIBY"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "要上传的图片文件",
+                    "example": ""
+                  }
+                },
+                "required": [
+                  "image"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "上传结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "userName": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string",
+            "format": "password"
+          }
+        },
+        "required": [
+          "userName",
+          "password"
+        ]
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "properties": {
+          "userName": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "nickName": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "userName",
+          "password",
+          "phone"
+        ]
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "token": {
+                "type": "string"
+              },
+              "user": {
+                "$ref": "#/components/schemas/UserVO"
+              }
+            }
+          }
+        }
+      },
+      "UserVO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "userName": {
+            "type": "string"
+          },
+          "nickName": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "role": {
+            "type": "integer"
+          },
+          "createTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PagedUserResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer"
+              },
+              "size": {
+                "type": "integer"
+              },
+              "total": {
+                "type": "integer"
+              },
+              "list": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/UserVO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "AdminCreateUserRequest": {
+        "type": "object",
+        "properties": {
+          "userName": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "nickName": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "role": {
+            "type": "integer",
+            "enum": [
+              0,
+              1,
+              2
+            ]
+          }
+        },
+        "required": [
+          "userName",
+          "password",
+          "role"
+        ]
+      },
+      "AdminUpdateUserRequest": {
+        "type": "object",
+        "properties": {
+          "nickName": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "role": {
+            "type": "integer"
+          },
+          "deleted": {
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ]
+          }
+        }
+      },
+      "PagedNewsResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "totalCount": {
+                "type": "integer"
+              },
+              "list": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/NewsPostSummary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "NewsPostSummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "categoryId": {
+            "type": "integer"
+          },
+          "categoryName": {
+            "type": "string"
+          },
+          "authorId": {
+            "type": "integer"
+          },
+          "authorName": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "type": "string"
+          },
+          "coverImages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "type": "integer"
+          },
+          "viewCount": {
+            "type": "integer"
+          },
+          "likeCount": {
+            "type": "integer"
+          },
+          "commentCount": {
+            "type": "integer"
+          },
+          "createTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "NewsPostResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/NewsPostDetail"
+          }
+        }
+      },
+      "NewsPostDetail": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/NewsPostSummary"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "content": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              },
+              "updateTime": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        ]
+      },
+      "NewsPostCreateRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "categoryId": {
+            "type": "integer"
+          },
+          "coverImages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "default": 1
+          }
+        },
+        "required": [
+          "title",
+          "content",
+          "categoryId"
+        ]
+      },
+      "NewsPostUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "categoryId": {
+            "type": "integer"
+          },
+          "coverImages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "source": {
+            "type": "string"
+          }
+        }
+      },
+      "NewsStatusUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "enum": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "description": "驳回原因（可选）"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "NewsImportRequest": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "categoryId": {
+            "type": "integer"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NewsImportItem"
+            },
+            "description": "待导入的新闻条目"
+          }
+        },
+        "required": [
+          "source",
+          "items"
+        ]
+      },
+      "NewsImportItem": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "coverImages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "title",
+          "content"
+        ]
+      },
+      "CommentCreateRequest": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "parentId": {
+            "type": "integer",
+            "default": 0
+          }
+        },
+        "required": [
+          "content"
+        ]
+      },
+      "PagedCommentResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer"
+              },
+              "size": {
+                "type": "integer"
+              },
+              "list": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CommentVO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "CommentVO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "postId": {
+            "type": "integer"
+          },
+          "userId": {
+            "type": "integer"
+          },
+          "nickName": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "parentId": {
+            "type": "integer"
+          },
+          "likeCount": {
+            "type": "integer"
+          },
+          "createTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LikeResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "likeCount": {
+                "type": "integer"
+              },
+              "liked": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      },
+      "CategoryListResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CategoryVO"
+            }
+          }
+        }
+      },
+      "CategoryVO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "UploadResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "BasicAckResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {}
+          }
+        }
+      }
+    },
+    "responses": {},
+    "securitySchemes": {}
+  },
+  "servers": [],
+  "security": []
+}
