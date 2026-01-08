@@ -24,10 +24,15 @@ public class UserLoginController {
      */
     @PostMapping("/login")
     public Map<String, Object> login(@RequestBody UserDTO userDTO) {
-        // 后端额外返回了头像和用户名信息
+        Map<String, Object> res = new HashMap<>();
+        if (userDTO == null || userDTO.getUserName() == null || userDTO.getPassword() == null) {
+            res.put("code", 0);
+            res.put("message", "用户名或密码不能为空");
+            return res;
+        }
+
         LoginInfo flag = userService.loginUser(userDTO.getUserName(), userDTO.getPassword());
 
-        Map<String, Object> res = new HashMap<>();
         if (flag == null) {
             res.put("code", 0);
             res.put("message", "用户名或密码错误");
